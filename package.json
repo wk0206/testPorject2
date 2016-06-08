@@ -1,11 +1,8 @@
 {
-  "name": "test",
+  "name": "test777",
   "version": "0.0.1",
   "description": "for test only",
   "main": "index.js",
-  "bin": {
-        "module_start": "./index.js"
-      },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
