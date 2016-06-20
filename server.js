@@ -7,12 +7,16 @@ var url = require("url");
 function start(route, handle) {
     function onRequest(request, response) {
         var pathname = url.parse(request.url).pathname;
-        var postData = "";
+
+        var temp  = pathname.substring(0,pathname.length-1).substring(2);
+        var postData = temp;
+
+        var path = "/"
         if(pathname!='/favicon.ico'){
             console.log("Request for " + pathname + " received.");
         }
         //console.log("Request for " + pathname + " received.");
-        route(handle, pathname, response, request, postData);
+        route(handle, path, response, request, postData);
     }
 
     http.createServer(onRequest).listen(8888);

@@ -7,6 +7,7 @@ var traverse = require('traverse');
 var parser = require('xml2json');
 var tableify = require('tableify');
 var formidable = require("formidable");
+var req = require('request');
 
 function start(response) {
     console.log("Request handler 'start' was called.");
@@ -175,6 +176,7 @@ function show(response) {
 
 function showxml2json(response,request,postData) {
     console.log("Request handler 'show' was called.");
+    /*
     fs.readFile("/tmp/test.xml", "binary", function(error, file) {
         if(error) {
             response.writeHead(500, {"Content-Type": "text/plain"});
@@ -198,7 +200,7 @@ function showxml2json(response,request,postData) {
             console.log(treatJS[0][1]);
             console.log(treatJS[0][2]);
             console.log(treatJS[0][3]);
-            */
+
             //console.log(treatJS[0]);
 
             //console.dir(leaves);
@@ -271,10 +273,94 @@ function showxml2json(response,request,postData) {
             response.end();
         }
     });
+*/
+    {
+
+        var json = parser.toJson(postData);
+
+        var treatJS = treatJson(json);
+
+        /*
+         console.log(treatJS[0][0]);
+         console.log(treatJS[0][1]);
+         console.log(treatJS[0][2]);
+         console.log(treatJS[0][3]);
+         */
+        //console.log(treatJS[0]);
+
+        //console.dir(leaves);
+        //console.log(typeof (json));
+        //var html = tableify(json);
+        //console.log(html);
+        //var strHtml = json.stringify(html);
+        var splithtml = json.split(/{/);
+
+        var replace1 = json.replace(/{/g,"<td>");
+        var replace2 = replace1.replace(/}/g,"</td>");
+        //var replace2 = replace1.replace(/,/g,",<br/>");
+        //var splithtml = json.split(/\".*\"{1}/g);
+        var res = '';
+        for (var i = 0; i < splithtml.length ; i ++){
+
+            if(splithtml[i].indexOf("}")>0){
+                var temp ="<br/>node:{"+splithtml[i].replace("}","");
+                var temp2 = temp.substring(5);
+                var temp3 = temp2.split(",");
+
+                res+=(temp+"<br/>");
+                for (var j = 0; j < temp3.length ; j ++){
+                    //res+=("<br/>    preoperties:"+temp3[j]);
+                }
+            }
+
+        }
+        //response.write(treatJS);
+
+        //response.end();
+        response.writeHead(200, {"Content-Type": "text/html"});
+        response.write("received data:<br/>");
+
+        var func =
+            '<script type="text/javascript">'+
+            'function showButton(id){' +
+            '   if(document.getElementById(id).style.display=="block"){' +
+            '       document.getElementById(id).style.display="none"' +
+            '   } else {' +
+            '       document.getElementById(id).style.display="block";' +
+            '   }'+
+            '}'+
+            '</script>';
 
 
+        response.write(func);
 
+        for (var i = 0 ; i<treatJS.length; i ++){
+
+            response.write("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
+            response.write("<div id=\"toc"+i+"\" hidden>");
+            response.write("<table style=\"width:100%\">");
+
+            for (var j = 0; j < treatJS[i].length; j++){
+
+                //response.write(treatJS[i][j].datablock+"<br/>");
+                //console.log("treatJS["+i+"]["+j+"]"+treatJS[i][j].datablock);
+                var htmlLine = JSONtoCSV(treatJS[i][j]);
+                //var htmlLine = JSONtoHTML(treatJS[i][j]);
+                response.write(htmlLine);
+            }
+            response.write("</table>");
+            response.write("</div>");
+            response.write("<br/>");
+        }
+
+        //response.write("<img src='/show' />");
+        //response.write("<lable>test</lable>")
+        response.end();
+    }
 }
+
+
+
 function showtraverse(response) {
     console.log("Request handler 'show' was called.");
     fs.readFile("/tmp/test.xml", "binary", function(error, file) {
@@ -1137,6 +1223,27 @@ function writeLog(msg){
 
 }
 
+function realfunction(response,request,postData) {
+    console.log("reading file " + postData );
+    var test ;
+
+    req.get(postData, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            //test = body.toString();
+
+            showxml2json(response,request,body);
+
+            console.log(body);
+
+            // Continue with your processing here.
+        }
+    });
+    console.log("reading file finished");
+
+
+
+}
+
 exports.start = start;
 exports.upload = upload;
 exports.show = show;
@@ -1144,3 +1251,4 @@ exports.xmlload = xmlload;
 exports.showxml2json = showxml2json;
 exports.showtraverse = showtraverse;
 exports.addNewPage = addNewPage;
+exports.realfunction = realfunction;
