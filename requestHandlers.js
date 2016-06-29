@@ -5,7 +5,7 @@ var fs = require("fs");
 var traverse = require('traverse');
 var parser = require('xml2json');
 var formidable = require("formidable");
-
+var sync = require('synchronize');
 
 function start(response) {
     console.log("Request handler 'start' was called.");
@@ -257,8 +257,8 @@ function showxml2json(response,request,postData) {
 
                     //response.write(treatJS[i][j].datablock+"<br/>");
                     //console.log("treatJS["+i+"]["+j+"]"+treatJS[i][j].datablock);
-                    var htmlLine = JSONtoCSV(treatJS[i][j]);
-                    //var htmlLine = JSONtoHTML(treatJS[i][j]);
+                    //var htmlLine = JSONtoCSV(treatJS[i][j]);
+                    var htmlLine = JSONtoHTML(treatJS[i][j]);
                     response.write(htmlLine);
                 }
                 response.write("</table>");
@@ -442,6 +442,10 @@ function treatJson( json ){
         }
     }
 
+    console.log("transform log");
+    console.log(temp13);
+    console.log("transform log");
+
     var datas = [];
     var dataflag = false;
     for(var i=0; i<temp13.length;i++) {
@@ -449,18 +453,18 @@ function treatJson( json ){
         if(temp13[i].line.indexOf("[")>-1){
             if(dataflag == false){
                 data.push(temp13[i]);
-                //console.log("################################a new block#################################################################");
-                //console.log("first line#########"+ temp13[i]);
+                console.log("################################a new block#################################################################");
+                console.log("first line#########"+ temp13[i].line);
             } else{
-                //console.log("################################delete a block#################################################################");
-                //console.log("because of" + temp13[i]);
+                console.log("################################delete a block#################################################################");
+                console.log("because of" + temp13[i].line);
                 for (var idx in data){
                     prefix.push(data[idx]);
                     //console.log("data to prefix#########");
                 }
                 data.length = 0;
                 data.push(temp13[i]);
-                //console.log("first line after delete#########"+ temp13[i]);
+                console.log("first line after delete#########"+ temp13[i].line);
             }
 
             dataflag = true;
@@ -468,43 +472,46 @@ function treatJson( json ){
             data.push(temp13[i]);
             dataflag = false;
 
+            console.log("################################end of a block#################################################################");
+            console.log("because of" + temp13[i].line);
+
             //remove duplicate
-            //console.log("-------------prefix-------------");
-
-
-
-            if(datas.length == 12){
-                console.log("this is 12 start")
-
-            }
-
             var cleanedPrefix = cleanPrefix(prefix);
 
-
-            if(datas.length == 12){
-                console.log("this is 12 end")
-
-            }
-
-            //console.log("-------------cleanedPrefix-------------");
+            console.log("-------------cleanedPrefix start-----------");
+            console.log(cleanedPrefix);
+            console.log("-------------cleanedPrefix end-------------");
 
             //if this prefix is already exist ,return index
             //var index = checkPrefix(datas, cleanedPrefix);
 
 
-            var index = checkTitle(datas, cleanedPrefix,data);
+            var index = -1;
+            var simpledataFlag = false;
 
+            if(checkSimpleData(data)){
+                simpledataFlag=true;
+
+                console.log("this is a simple data");
+            }
+
+            index = findSameTitle(datas, cleanedPrefix, data, simpledataFlag);
+
+            console.log("-------------index is "+index+"-------------");
 
             //prefix is same ,
             if(index>=0){
                 //check data title , return data title length
                 //var dataLength = checkData(datas[index],cleanedPrefix, data);
                 //prefix exist, and data title is same , add to exist
-                var dataBlock = addDataToExist(cleanedPrefix, datas[index], data);
+                var dataBlock = addDataToExist(cleanedPrefix, datas[index], data, simpledataFlag);
 
                 var ele = {};
                 ele["prefix"] =dataBlock[0];
                 ele["datablock"]=dataBlock;
+                if(simpledataFlag==true){
+                    ele["simple"]=true;
+                }
 
                 console.log("update data " + index);
                 datas[index] = ele;
@@ -537,10 +544,19 @@ function treatJson( json ){
             //prefix is different
             else {
                 //prefix is not exist, make new block
-                var dataBlock = treatData(cleanedPrefix, data);
+                var dataBlock = treatData(cleanedPrefix, data, simpledataFlag);
                 var ele = {};
                 ele["prefix"] =dataBlock[0];
                 ele["datablock"]=dataBlock;
+                if(simpledataFlag==true){
+                    ele["simple"]=true;
+                }
+
+
+                console.log("-------------dataBlock start-----------");
+                console.log(dataBlock);
+                console.log("-------------dataBlock end-------------");
+
 
                 console.log("add a new data to datas with number"+ datas.length);
                 datas.push(ele);
@@ -627,15 +643,27 @@ function addNewPage(response,request, postdata){
     response.end;
 }
 
-function treatData(prefix,data ){
+function treatData(prefix,data ,simpledataFlag){
 
     console.log("build datablock:start");
 
+    console.log("entered prefix");
+    console.log(prefix);
+    console.log("entered prefix");
 
-    var title = [];
+    console.log("entered data");
+    console.log(data);
+    console.log("entered data");
+    //console.log(data);
+
+    var title = []
+
+
     var rows = [];
-    var rowPrefix = [];
-    var dataPrefix = [];
+    var rowPrefix = prefix.slice(0);
+    var dataStack = [];
+
+    /*
     var ele={};
     for(var i = 0 ; i < prefix.length; i++){
         var splitPoint = prefix[i].line.indexOf(":");
@@ -659,71 +687,121 @@ function treatData(prefix,data ){
 
                 rowPrefix.push(ele);
                 //rowPrefix.push(val.substring(0,val.length-5).substring(1));
-            }
-        }
-    }
-
-
-    var count = 0;
-    for(var i = 0 ; i < data.length; i++){
-        var splitPoint = data[i].line.indexOf(":");
-        var row =rowPrefix.slice(0);
-
-        if(data[i].line.indexOf("{")>-1){
-            count++;
-            dataPrefix.length = 0;
-        }
-
-        if (splitPoint>-1){
-            if(count==1){
-                var att = data[i].line.substring(0,splitPoint);
+            }else {
                 ele={};
                 ele["indentation"] ="";
                 ele["line"]=att;
+
                 title.push(ele);
+
+                ele={};
+                ele["indentation"] = prefix[i].indentation;
+                ele["line"]=val.substring(1);
+
+                rowPrefix.push(ele);
+                //rowPrefix.push(val.substring(0,val.length-5).substring(1));
             }
-            var val = data[i].line.substring(splitPoint);
-            var temp = val.substring(1);
-            if(temp.substring(val.length-1)==","){
-                temp = temp.substring(0,val.length-1);
+        }
+    }
+*/
+    for(idx in prefix){
+        var ele = {};
+        ele={};
+        ele["indentation"] = prefix[idx].indentation;
+        ele["att"]= prefix[idx].att;
+        ele["val"]= prefix[idx].att;
+
+        title.push(ele);
+    }
+
+    var count = 0;
+    if(simpledataFlag==false){
+        for(var i = 0 ; i < data.length; i++){
+            var splitPoint = data[i].line.indexOf(":");
+            //        var row =rowPrefix.slice(0);
+
+            if(data[i].line.indexOf("{")>-1){
+                count++;
+                dataStack.length = 0;
+            }
+
+            if (splitPoint>-1){
+                var att = data[i].line.substring(0,splitPoint);
+                var val = data[i].line.substring(splitPoint);
+                if(count==1){
+                    ele={};
+                    ele["indentation"] ="";
+                    ele["att"]=att;
+                    ele["val"]=att;
+                    title.push(ele);
+                }
+
+                var temp = val.substring(1);
+                if(temp.substring(val.length-1)==","){
+                    temp = temp.substring(0,val.length-1);
+                }
+
+                ele={};
+                ele["indentation"] = data[i].indentation;
+                ele["att"]=att;
+                ele["val"]=temp;
+                dataStack.push(ele);
+                /*
+                 console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
+                 console.log(data[i].substring(0,splitPoint));
+                 console.log(dataStack);
+                 console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
+                 */
+            }
+
+            if(data[i].line.indexOf("}")>-1){
+                var temp = prefix.slice(0);
+
+                console.log("sepecial treat");
+                console.log(prefix);
+                console.log("sepecial treat");
+
+                for (idx in dataStack){
+                    temp.push(dataStack[idx]);
+                }
+
+                //var res = cleanPrefix(temp);
+
+                var row = temp;
+
+                rows.push(row);
+            }
+        }
+        rows.unshift(title);
+    }else{
+        for(var i = 0 ; i < data.length; i++){
+            var splitPoint = data[i].line.indexOf(":");
+            //        var row =rowPrefix.slice(0);
+
+
+            if(splitPoint>-1){
+                var att = data[i].line.substring(0,splitPoint);
+                var val = data[i].line.substring(splitPoint);
+            }
+            else{
+                var att = data[i].line;
+                var val = data[i].line;
             }
 
             ele={};
-            ele["indentation"] = data[i].indentation;
-            ele["line"]=temp;
+            ele["indentation"] ="";
+            ele["att"]=att;
+            ele["val"]=val;
+            title.push(ele);
 
-
-
-            dataPrefix.push(ele);
-            /*
-            console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
-            console.log(data[i].substring(0,splitPoint));
-            console.log(dataPrefix);
-            console.log("$$$$$$$$$$$$$$$$$$$$$$$$");
-            */
         }
-
-
-
-        if(data[i].line.indexOf("}")>-1){
-            var temp = rowPrefix.slice(0);
-            for (idx in dataPrefix){
-                temp.push(dataPrefix[idx]);
-            }
-
-            //var res = cleanPrefix(temp);
-
-            var row = temp;
-
-            rows.push(row);
-        }
+        rows.push(title);
     }
+
 
 
     //title.push("<br/>");
     //console.log(title);
-    rows.unshift(title);
-
     /*
     for (idx in rows){
         console.log("MMMMMMMMMMMMMMMMMMM");
@@ -742,7 +820,7 @@ function JSONtoCSV(inputCSV){
     res+="";
     for(idx in inputCSV){
 
-        res+=inputCSV[idx].line;
+        res+=inputCSV[idx].val;
         if(res.substring(res.length-1)==","){
 
         }else {
@@ -766,7 +844,7 @@ function JSONtoHTML(inputCSV){
     res+="<tr>";
     for(idx in inputCSV){
         res+="<td>";
-        res+=inputCSV[idx].line;
+        res+=inputCSV[idx].val;
         res+="</td>";
     }
     res+="</tr>";
@@ -782,7 +860,7 @@ function cleanPrefix(prefix){
         //console.log("before clean"+prefix[aa].indentation+prefix[aa].line);
     }
     console.log("-------------------------------------------------------------")
-
+    var title = [];
 
 
     var startMark = 0;
@@ -865,7 +943,38 @@ function cleanPrefix(prefix){
         res = cleanPrefix(part1);
     }else {
         console.log("final loop with length = " + prefix.length);
-        res = prefix;
+
+
+
+        var ele={};
+        for(var i = 0 ; i < prefix.length; i++){
+            var splitPoint = prefix[i].line.indexOf(":");
+
+            if (splitPoint>-1){
+
+                var att = prefix[i].line.substring(0,splitPoint);
+                var val = prefix[i].line.substring(splitPoint);
+
+
+                if(val !=  ": {" && val !=":["){
+                    ele={};
+                    ele["indentation"] =prefix[i].indentation;
+                    ele["att"]=att;
+                    ele["val"]=val;
+
+                    title.push(ele);
+                }else {
+                    ele={};
+                    ele["indentation"] =prefix[i].indentation;
+                    ele["att"]=att;
+                    ele["val"]=val;
+
+                    title.push(ele);
+                }
+            }
+        }
+
+        res = title;
     }
 
 
@@ -921,30 +1030,15 @@ function checkPrefix(datas, prefix){
     return -1;
 }
 
-function checkTitle(datas,prefix, comparedData){
-    console.log("checkTitle start");
+function findSameTitle(datas, prefix, comparedData, simpledataFlag){
+    console.log("findSameTitle start");
 
-    var title = [];
+    var title = prefix;
 
-    var ele={};
-    for(var i = 0 ; i < prefix.length; i++){
-        var splitPoint = prefix[i].line.indexOf(":");
+    console.log("title log start");
+    console.log(title);
+    console.log("title log end");
 
-        if (splitPoint>-1){
-
-            var att = prefix[i].line.substring(0,splitPoint);
-            var val = prefix[i].line.substring(splitPoint);
-
-
-            if(val !=  ": {" && val !=":["){
-                ele={};
-                ele["indentation"] ="";
-                ele["line"]=att;
-
-                title.push(ele);
-            }
-        }
-    }
 
     var res;
 
@@ -953,37 +1047,48 @@ function checkTitle(datas,prefix, comparedData){
     for(var i = 0; i < datas.length; i++){
         //log for compare title console.log("it is "+ i + "th data");
         res = true;
-        if(datas[i].prefix.length <= title.length){
+        if(datas[i].prefix.length < title.length){
+            for(aa in datas[i].prefix){
+                console.log(datas[i].prefix[aa].line);
+            }
+            console.log("datas["+i+"].prefix.length="+datas[i].prefix.length +" is larger than title.length = "+title.length);
             res = false;
             continue;
         }
 
         for(idx in title){
+
             //console.log("datas prefix is  " +datas[i].prefix[idx]);
             //log for compare title console.log(title[idx].line+" and "+datas[i].prefix[idx].line + " are same");
-            if(title[idx].line != datas[i].prefix[idx].line){
-                //console.log(title[idx].line+" and "+datas[i].prefix[idx].line + " are different");
+            //console.log(title[idx].att+" and "+datas[i].prefix[idx].att);
+            if((title[idx].att) != (datas[i].prefix[idx].att)){
+
+                console.log(title[idx].att+" and "+datas[i].prefix[idx].att + " are different");
                 res = false;
                 break;
             }
+
         }
 
         if(res == true){
-            //log for compare title console.log("checkTitle : data "+ i +" has same title");
+            //log for compare title console.log("findSameTitle : data "+ i +" has same title");
+            resOfCheckData = checkData(datas[i],title.length, comparedData, simpledataFlag);
 
-            if(checkData(datas[i],title.length, comparedData)>0){
-                //log for compare title console.log("checkTitle : data "+ i +" has same data type");
+            if(resOfCheckData>=0){
+                //log for compare title console.log("findSameTitle : data "+ i +" has same data type");
                 return i;
+            }else if (resOfCheckData==-99){
+                return -99;
             }
             //return i;
         }
     }
 
-    //console.log("checkTitle end: return -1");
+    console.log("findSameTitle end: Title different");
     return -1;
 }
 
-function addDataToExist(prefix, originalData, additionalData){
+function addDataToExist(prefix, originalData, additionalData, simpledataFlag){
     /*
      var ele = {};
      ele["prefix"] =cleanedPrefix;
@@ -993,29 +1098,13 @@ function addDataToExist(prefix, originalData, additionalData){
     * */
 
     //console.log("add additional data to exist index "+ dataLength);
-    var rowPrefix = [];
-    var dataPrefix = [];
-
-    for(var i = 0 ; i < prefix.length; i++){
-        var splitPoint = prefix[i].line.indexOf(":");
-
-        if (splitPoint>-1){
-
-            var att = prefix[i].line.substring(0,splitPoint);
-            var val = prefix[i].line.substring(splitPoint);
+    var rowPrefix = prefix.slice(0);
+    var dataStack = [];
 
 
-            if(val !=  ": {" && val !=":["){
-
-                ele={};
-                ele["indentation"] = prefix[i].indentation;
-                ele["line"]=val.substring(1);
-
-                rowPrefix.push(ele);
-                //rowPrefix.push(val.substring(0,val.length-5).substring(1));
-            }
-        }
-    }
+    console.log("rowPrefix log start");
+    console.log(rowPrefix);
+    console.log("rowPrefix log end");
 
     var rows = originalData.datablock.slice(0);
 
@@ -1033,61 +1122,86 @@ function addDataToExist(prefix, originalData, additionalData){
     //rowPrefix=lastEle.slice(0,originalData.datablock[0].length-dataLength-1);
     //console.log("lastEle"+lastEle);
     //console.log("rowPrefix"+rowPrefix);
-    for(var i = 0 ; i < additionalData.length; i++) {
-        var splitPoint = additionalData[i].line.indexOf(":");
-        //var row =rowPrefix.slice(0);
+    if(simpledataFlag == false){
+        for(var i = 0 ; i < additionalData.length; i++) {
+            var splitPoint = additionalData[i].line.indexOf(":");
+            //var row =rowPrefix.slice(0);
 
-        if (additionalData[i].line.indexOf("{") > -1) {
-            dataPrefix.length = 0;
-        }
-
-        if (splitPoint > -1) {
-
-            var val = additionalData[i].line.substring(splitPoint);
-            var temp = val.substring(1);
-            if (temp.substring(val.length - 1) == ",") {
-                temp = temp.substring(0, val.length - 1);
+            if (additionalData[i].line.indexOf("{") > -1) {
+                dataStack.length = 0;
             }
 
-            ele = {};
-            ele["indentation"] = additionalData[i].indentation;
-            ele["line"] = temp;
+            if (splitPoint > -1) {
+                var att = additionalData[i].line.substring(0, splitPoint);
 
-            dataPrefix.push(ele);
-        }
+                var val = additionalData[i].line.substring(splitPoint);
+                var temp = val.substring(1);
+                if (temp.substring(val.length - 1) == ",") {
+                    temp = temp.substring(0, val.length - 1);
+                }
 
-        if(additionalData[i].line.indexOf("}")>-1){
-            var temp = rowPrefix.slice(0);
-            for (idx in dataPrefix){
-                temp.push(dataPrefix[idx]);
+                ele = {};
+                ele["indentation"] = additionalData[i].indentation;
+                ele["att"] = att;
+                ele["val"] = temp;
+
+                dataStack.push(ele);
             }
 
-            //var res = cleanPrefix(temp);
+            if(additionalData[i].line.indexOf("}")>-1){
+                var temp = rowPrefix.slice(0);
+                for (idx in dataStack){
+                    temp.push(dataStack[idx]);
+                }
 
-            var row = temp;
+                //var res = cleanPrefix(temp);
 
-            rows.push(row);
+                var row = temp;
+
+                rows.push(row);
+            }
         }
+    }else {
+        for(var i = 0 ; i < additionalData.length; i++){
+            var splitPoint = additionalData[i].line.indexOf(":");
+            //        var row =rowPrefix.slice(0);
+
+
+            if(splitPoint>-1){
+                var att = additionalData[i].line.substring(0,splitPoint);
+                var val = additionalData[i].line.substring(splitPoint);
+            }
+            else{
+                var att = additionalData[i].line;
+                var val = additionalData[i].line;
+            }
+
+            ele={};
+            ele["indentation"] ="";
+            ele["att"]=att;
+            ele["val"]=val;
+            rowPrefix.push(ele);
+
+        }
+        rows.push(rowPrefix);
     }
+
     console.log("add additional data end");
     return rows;
 }
 
-
-function checkData(originalData,prefixLength, comparedData){
-    //console.log("checkData start");
-
-
-    var dataPrefix = [];
+function checkSimpleData(comparedData){
+    var dataStack = [];
     var dataTitle = [];
     var count = 0;
     for(var i = 0 ; i < comparedData.length; i++) {
-        var splitPoint = comparedData[i].line.indexOf(":");
 
         if (comparedData[i].line.indexOf("{") > -1) {
             count++;
-            dataPrefix.length = 0;
+            dataStack.length = 0;
         }
+
+        var splitPoint = comparedData[i].line.indexOf(":");
 
         if (splitPoint > -1) {
             if (count == 1) {
@@ -1099,10 +1213,174 @@ function checkData(originalData,prefixLength, comparedData){
             }
         }
     }
+
+    //this is a single data
+    if(count == 0){
+
+        for(var i = 0 ; i < comparedData.length; i++) {
+
+            if (comparedData[i].line.indexOf("[") > -1) {
+                //console.log("this data is a single data, has no title");
+                count++;
+                dataStack.length = 0;
+            }
+
+            var splitPoint = comparedData[i].line.indexOf(":");
+
+            if (splitPoint > -1) {
+                if (count == 1) {
+                    var att = comparedData[i].line.substring(0, splitPoint);
+                    ele = {};
+                    ele["indentation"] = "";
+                    ele["line"] = att;
+                    dataTitle.push(ele);
+                }
+            }else{
+                if (count == 1) {
+                    var att = comparedData[i].line;
+                    ele = {};
+                    ele["indentation"] = "";
+                    ele["line"] = att;
+                    dataTitle.push(ele);
+                }
+            }
+        }
+
+        if (count == 1) {
+            //console.log("this is a simple data");
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function checkData(originalData, prefixLength, comparedData, simpledataFlag){
+    console.log("checkData start");
+    console.log("comparedData log");
+    console.log(comparedData);
+    console.log("comparedData log");
+
+    console.log("originalData.simple="+originalData.simple);
+
+    var dataStack = [];
+    var dataTitle = [];
+    var count = 0;
+    var originalTitle = originalData.datablock[0]
+
+    if((originalData.simple!=true) && (simpledataFlag==true)){
+        console.log("simple data can not be the same with array datas");
+        return -1;
+    }else if((originalData.simple==true) && (simpledataFlag==true)){
+
+        for(var i = 0 ; i < comparedData.length; i++) {
+
+            if (comparedData[i].line.indexOf("[") > -1) {
+                console.log("this data is a single data, has no title");
+                count++;
+                dataStack.length = 0;
+            }
+
+            var splitPoint = comparedData[i].line.indexOf(":");
+
+            if (splitPoint > -1) {
+                if (count == 1) {
+                    var att = comparedData[i].line.substring(0, splitPoint);
+                    var val = comparedData[i].line.substring(splitPoint);
+                    ele = {};
+                    ele["indentation"] = comparedData[i].indentation;
+                    ele["att"] = att;
+                    ele["val"] = val;
+                    dataTitle.push(ele);
+                }
+            }else{
+                if (count == 1) {
+                    var att = comparedData[i].line;
+                    ele = {};
+                    ele["indentation"] = "";
+                    ele["att"] = att;
+                    ele["val"] = att;
+                    dataTitle.push(ele);
+                }
+            }
+        }
+
+        if((prefixLength + dataTitle.length)!=originalTitle.length){
+            //console.log("checkData end: title length different, return -1");
+            return -1;
+        }else {
+            return dataTitle.length;
+        }
+
+    }
+
+
+    for(var i = 0 ; i < comparedData.length; i++) {
+
+        if (comparedData[i].line.indexOf("{") > -1) {
+            count++;
+            dataStack.length = 0;
+        }
+
+        var splitPoint = comparedData[i].line.indexOf(":");
+
+        if (splitPoint > -1) {
+            if (count == 1) {
+                var att = comparedData[i].line.substring(0, splitPoint);
+                var val = comparedData[i].line.substring(splitPoint);
+                ele = {};
+                ele["indentation"] = comparedData[i].indentation;
+                ele["att"] = att;
+                ele["val"] = val;
+                dataTitle.push(ele);
+            }
+        }
+    }
+
+    //this is a single data
+    if(count == 0){
+
+        for(var i = 0 ; i < comparedData.length; i++) {
+
+            if (comparedData[i].line.indexOf("[") > -1) {
+                console.log("this data is a single data, has no title");
+                count++;
+                dataStack.length = 0;
+            }
+
+            var splitPoint = comparedData[i].line.indexOf(":");
+
+            if (splitPoint > -1) {
+                if (count == 1) {
+                    var att = comparedData[i].line.substring(0, splitPoint);
+                    var val = comparedData[i].line.substring(splitPoint);
+                    ele = {};
+                    ele["indentation"] = comparedData[i].indentation;
+                    ele["att"] = att;
+                    ele["val"] = val;
+                    dataTitle.push(ele);
+                }
+            }else{
+                if (count == 1) {
+                    var att = comparedData[i].line;
+                    ele = {};
+                    ele["indentation"] = "";
+                    ele["att"] = att;
+                    ele["val"] = att;
+                    dataTitle.push(ele);
+                }
+            }
+        }
+
+        if (count == 1) {
+            console.log("checkData end: find same title with data legth = " + dataTitle.length);
+            return -99;
+        }
+    }
     //console.log("original data is "+originalData);
     //console.log("original data length is "+originalData.datablock[0]);
 
-    var originalTitle = originalData.datablock[0];
+;
 
     //log for compare title console.log(prefixLength +" + "+ dataTitle.length +" : " + originalTitle.length)
     if((prefixLength + dataTitle.length)!=originalTitle.length){
@@ -1114,13 +1392,13 @@ function checkData(originalData,prefixLength, comparedData){
     //console.log("original title is "+originalTitle);
 
     for (var i = 0; i < dataTitle.length ; i++){
-        if(dataTitle[dataTitle.length-i-1].line!=originalTitle[originalTitle.length-i-1].line){
+        if(dataTitle[dataTitle.length-i-1].att!=originalTitle[originalTitle.length-i-1].att){
             console.log("checkData end: title context different, return -1");
             return -1;
         }
     }
 
-    console.log("checkData end: find same title at index " + dataTitle.length);
+    console.log("checkData end: find same title with data legth = " + dataTitle.length);
     return dataTitle.length;
 }
 
@@ -1170,9 +1448,22 @@ function realfunction(response,request,postData) {
         if (!error && res.statusCode == 200) {
             //test = body.toString();
 
+            //toJson = sync(toJson);
+            sync(parser, 'toJson');
+
             var json = parser.toJson(body);
 
+            console.log("json log");
+            console.log(json);
+            console.log("json log");
+
             treatJS = treatJson(json);
+
+
+            console.log("treatJS log");
+            console.log(treatJS);
+            console.log("treatJS log");
+
 
             var result = "";
             result+=func;
@@ -1184,7 +1475,9 @@ function realfunction(response,request,postData) {
 
                 for (var j = 0; j < treatJS[i].length; j++){
 
-                    var htmlLine = JSONtoCSV(treatJS[i][j]);
+                    //console.log(treatJS[i][j]);
+                    //var htmlLine = JSONtoCSV(treatJS[i][j]);
+                    var htmlLine = JSONtoHTML(treatJS[i][j]);
 
                     result+=(htmlLine);
                 }
@@ -1193,7 +1486,10 @@ function realfunction(response,request,postData) {
                 result+=("<br/>");
             }
 
+
+            console.log("result log");
             console.log(result);
+            console.log("result log");
 
             var fs = require('fs');
             fs.writeFile("/tmp/result.html", result, function(err) {
@@ -1215,7 +1511,6 @@ function realfunction(response,request,postData) {
 
     //response.write("<a href = '/tmp/test'> test ");
 
-    console.log("treatJS.length"+treatJS.length);
     for (var i = 0 ; i<treatJS.length; i ++){
 
         response.write("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
