@@ -454,17 +454,17 @@ function treatJson( json ){
             if(dataflag == false){
                 data.push(temp13[i]);
                 console.log("################################a new block#################################################################");
-                console.log("first line#########"+ temp13[i].line);
+                console.log("first line#########"+ temp13[i].line + " at line " + i);
             } else{
                 console.log("################################delete a block#################################################################");
-                console.log("because of" + temp13[i].line);
+                console.log("because of" + temp13[i].line + " at line " + i);
                 for (var idx in data){
                     prefix.push(data[idx]);
                     //console.log("data to prefix#########");
                 }
                 data.length = 0;
                 data.push(temp13[i]);
-                console.log("first line after delete#########"+ temp13[i].line);
+                console.log("first line after delete#########"+ temp13[i].line + " at line " + i);
             }
 
             dataflag = true;
@@ -473,7 +473,7 @@ function treatJson( json ){
             dataflag = false;
 
             console.log("################################end of a block#################################################################");
-            console.log("because of" + temp13[i].line);
+            console.log("because of" + temp13[i].line + " at line " + i);
 
             //remove duplicate
             var cleanedPrefix = cleanPrefix(prefix);
@@ -550,6 +550,8 @@ function treatJson( json ){
                 ele["datablock"]=dataBlock;
                 if(simpledataFlag==true){
                     ele["simple"]=true;
+                }else{
+                    ele["simple"]=false;
                 }
 
 
@@ -582,9 +584,12 @@ function treatJson( json ){
             //console.log("because this " + temp13[i]);
             //console.log("################################output a block#################################################################");
         } else if ( dataflag == true ){
+
+            console.log("line " + i +"add to data");
             data.push(temp13[i]);
             //console.log("add a new line#########"+ temp13[i]);
         } else if (dataflag == false){
+            console.log("line " + i +"add to prefix");
             prefix.push(temp13[i]);
             //console.log("prefix#########");
         }
@@ -617,7 +622,68 @@ function treatJson( json ){
     }
 
 
-    return res;
+
+    var result = cleanResult(res);
+    return result;
+}
+
+function cleanResult(res){
+
+    var resCopy = res.slice(0);
+    var uselessArray = [];
+    uselessArray.push(": {");
+        uselessArray.push(":[")
+    for(idx in res){
+        var data = res[idx];
+
+        var titleLine = data[0].slice(0);
+        var associativeArray = {};
+        for (var i = 0; i < titleLine.length; i++){
+
+
+            if(Object.keys(associativeArray).indexOf(titleLine[i].att)>-1)　{
+                associativeArray[titleLine[i].att]++;
+            }else {
+                associativeArray[titleLine[i].att]=1;
+            }
+
+
+            if(Object.keys(associativeArray).indexOf(titleLine[i].att)>-1)　{
+                titleLine[i].val = titleLine[i].att +　associativeArray[titleLine[i].att];
+            }
+
+        }
+
+
+
+        for(var i = 0; i < data[0].length ; i++){
+            for(var j = 1; j < data.length ; j++){
+
+                console.log("data[j][i].val="+data[j][i].val);
+                console.log("uselessArray.indexOf(data[j][i].val)="+uselessArray.indexOf(data[j][i].val));
+
+                if(uselessArray.indexOf(data[j][i].val)==-1){
+                    titleLine[i]["output"]=true;
+                    break;
+                }else {
+                    titleLine[i]["output"]=false;
+                }
+            }
+        }
+
+
+        resCopy[idx][0]=titleLine;
+        //ele["prefix"] =dataBlock[0];
+        //ele["datablock"]=dataBlock;
+        //if(simpledataFlag==true){
+          //  ele["simple"]=true;
+        //}else{
+        //    ele["simple"]=false;
+        //}
+
+    }
+
+    return resCopy;
 }
 
 function buildIndentation(index){
@@ -715,32 +781,49 @@ function treatData(prefix,data ,simpledataFlag){
     }
 
     var count = 0;
+    var pieceOfDataFlag = 0;
     if(simpledataFlag==false){
         for(var i = 0 ; i < data.length; i++){
+
             var splitPoint = data[i].line.indexOf(":");
             //        var row =rowPrefix.slice(0);
 
             if(data[i].line.indexOf("{")>-1){
-                count++;
-                dataStack.length = 0;
+                if(pieceOfDataFlag==0){
+                    console.log("start of a piece of data");
+                    dataStack.length = 0;
+                    count++;
+                }
+                pieceOfDataFlag++;
+
+
+            }
+
+            if(data[i].line.indexOf("}")>-1){
+                pieceOfDataFlag--;
+                //count++;
+                //dataStack.length = 0;
             }
 
             if (splitPoint>-1){
                 var att = data[i].line.substring(0,splitPoint);
-                var val = data[i].line.substring(splitPoint);
+                var val = data[i].line.substring(splitPoint+1);
                 if(count==1){
                     ele={};
                     ele["indentation"] ="";
                     ele["att"]=att;
                     ele["val"]=att;
+                    console.log("add an element to title: "+ att);
                     title.push(ele);
                 }
 
-                var temp = val.substring(1);
+                var temp = val;
                 if(temp.substring(val.length-1)==","){
                     temp = temp.substring(0,val.length-1);
                 }
-
+                if(temp.substring(val.length-1)=="{"){
+                    temp = "-";
+                }
                 ele={};
                 ele["indentation"] = data[i].indentation;
                 ele["att"]=att;
@@ -754,7 +837,9 @@ function treatData(prefix,data ,simpledataFlag){
                  */
             }
 
-            if(data[i].line.indexOf("}")>-1){
+            if(data[i].line.indexOf("}")>-1 && (pieceOfDataFlag==0)){
+
+                console.log("end of a piece of data")
                 var temp = prefix.slice(0);
 
                 console.log("sepecial treat");
@@ -814,19 +899,23 @@ function treatData(prefix,data ,simpledataFlag){
     return rows;
 
 }
-function JSONtoCSV(inputCSV){
+
+
+
+function JSONtoCSV(inputCSV, title){
     var res = "";
 
     res+="";
     for(idx in inputCSV){
 
-        res+=inputCSV[idx].val;
-        if(res.substring(res.length-1)==","){
+        if(title[idx].output==true){
+            res+=inputCSV[idx].val;
+            if(res.substring(res.length-1)==","){
 
-        }else {
-            res+=",";
+            }else {
+                res+=",";
+            }
         }
-
     }
 
     res = res.substring(0,res.length-1);
@@ -836,16 +925,20 @@ function JSONtoCSV(inputCSV){
 }
 
 
-function JSONtoHTML(inputCSV){
+function JSONtoHTML(inputCSV, title){
 
     //console.log(inputCSV);
     var res = "";
 
     res+="<tr>";
     for(idx in inputCSV){
-        res+="<td>";
-        res+=inputCSV[idx].val;
-        res+="</td>";
+
+        if(title[idx].output==true){
+            res+="<td>";
+            res+=inputCSV[idx].val;
+            res+="</td>";
+        }
+
     }
     res+="</tr>";
 
@@ -855,11 +948,13 @@ function JSONtoHTML(inputCSV){
 
 function cleanPrefix(prefix){
     //console.log("--------------------------------------");
-    //console.log(prefix);
+    console.log("################################prefix to be clean#################################################################");
+    console.log(prefix);
+    console.log("################################prefix to be clean#################################################################");
+
     for(aa in prefix){
         //console.log("before clean"+prefix[aa].indentation+prefix[aa].line);
     }
-    console.log("-------------------------------------------------------------")
     var title = [];
 
 
@@ -874,24 +969,22 @@ function cleanPrefix(prefix){
 
     var res = [];
 
+    //check from backward
     for(var i = prefix.length-1; i >3; i--){
 
         //console.log(datablock[i].indentation+datablock[i].line);
         //console.log(datablock[i].indentation+datablock[i].line);
         //console.log("prefix[i] is "+prefix[i].indentation);
         console.log("prefix["+i+"] is "+prefix[i].indentation+prefix[i].line);
-        console.log("prefix[i-1] is "+prefix[i-1].indentation);
-        console.log("prefix[i-2] is "+prefix[i-2].indentation);
+        //console.log("prefix[i-1] is "+prefix[i-1].indentation);
+        //console.log("prefix[i-2] is "+prefix[i-2].indentation);
 
 
         if((prefix[i].indentation-prefix[i-1].indentation)<=-1
             && (prefix[i-1].indentation-prefix[i-2].indentation)<=-1){
-
-            console.log("here is a start mark with " + startMark);
-
             endLine = i;
             startMark = prefix[i].indentation;
-
+            console.log("here is a start mark with indentation =" + startMark);
             break;
         }
     }
@@ -904,7 +997,7 @@ function cleanPrefix(prefix){
 
         if(prefix[i].indentation==startMark){
 
-            console.log("here is a end mark with " + startMark);
+            console.log("here is an end mark with " + startMark);
 
 
             endMark++;
@@ -1446,7 +1539,7 @@ function realfunction(response,request,postData) {
 
     req.get(postData, function (error, res, body) {
         if (!error && res.statusCode == 200) {
-            //test = body.toString();
+                //test = body.toString();
 
             //toJson = sync(toJson);
             sync(parser, 'toJson');
@@ -1473,11 +1566,15 @@ function realfunction(response,request,postData) {
                 result+=("<div id=\"toc"+i+"\" hidden>");
                 result+=("<table style=\"width:100%\">");
 
+                var title = treatJS[i][0];
+
+                console.log("^^^^^^^^final log^^^^^^^^");
+                console.log(title);
+
                 for (var j = 0; j < treatJS[i].length; j++){
 
-                    //console.log(treatJS[i][j]);
-                    //var htmlLine = JSONtoCSV(treatJS[i][j]);
-                    var htmlLine = JSONtoHTML(treatJS[i][j]);
+                    //var htmlLine = JSONtoCSV(treatJS[i][j],title);
+                    var htmlLine = JSONtoHTML(treatJS[i][j],title);
 
                     result+=(htmlLine);
                 }
