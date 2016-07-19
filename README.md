@@ -21,6 +21,9 @@ Sample23M, will not work;
 you can send raw xml parameter inside [] after http://localhost:8888/
 it should be able to be visit by other application by call the link with xml URL as parameter.
 
+xml source:http://www.cs.washington.edu/research/xmldatasets/
+xml source:obeu
+
 #GET THE RESULT
 file:///tmp/result.html
 
