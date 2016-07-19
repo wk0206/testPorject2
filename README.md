@@ -13,8 +13,11 @@ use console to get the path, type"node combineXMLdata" to start server(combineXM
 visit"http://localhost:8888/[https://raw.githubusercontent.com/wk0206/testPorject2/master/test_simple.xml]" for test;
 
 you can change test_simple.xml to other xml at the same domain;
+
 Sample1M , will take half an hour to finish transform;
+
 Sample23M, will not work;
+
 you can send raw xml parameter inside [] after http://localhost:8888/
 it should be able to be visit by other application by call the link with xml URL as parameter.
 
