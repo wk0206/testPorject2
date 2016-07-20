@@ -1184,6 +1184,7 @@ function realfunction(response,request,postData) {
                     var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
                     console.log(consoleLine);
                 }
+                console.log("");
                 result+=("</table>");
                 result+=("</div>");
                 result+=("<br/>");
@@ -1206,22 +1207,6 @@ function realfunction(response,request,postData) {
     var date = new Date();
     console.log(date.toISOString()+": reading file finished");
 
-    //response.write("<a href = '/tmp/test'> test ");
-    for (var i = 0 ; i<treatJS.length; i ++){
-        response.write("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
-        response.write("<div id=\"toc"+i+"\" hidden>");
-        response.write("<table style=\"width:100%\">");
-        for (var j = 0; j < treatJS[i].length; j++){
-
-            var htmlLine = JSONtoCSV(treatJS[i][j]);
-            //var htmlLine = JSONtoCSV(treatJS[i][j]);
-            response.write(htmlLine);
-            //console.log(htmlLine);
-        }
-        response.write("</table>");
-        response.write("</div>");
-        response.write("<br/>");
-    }
     response.end();
 
     var date = new Date();
