@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a8e86b55-057c-4be5-a15c-f6d44109c6b5" name="Default" comment="upload for combine similar tables">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/requestHandlers.js" afterPath="$PROJECT_DIR$/requestHandlers.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/router.js" afterPath="$PROJECT_DIR$/router.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server.js" afterPath="$PROJECT_DIR$/server.js" />
-    </list>
+    <list default="true" id="a8e86b55-057c-4be5-a15c-f6d44109c6b5" name="Default" comment="upload for combine similar tables" />
     <ignored path="EmptyProject.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -29,25 +24,10 @@
       <file leaf-file-name="requestHandlers.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/requestHandlers.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.2328767">
+            <state vertical-scroll-proportion="0.3254973">
               <caret line="1181" column="20" selection-start-line="1181" selection-start-column="20" selection-end-line="1181" selection-end-column="20" />
               <folding>
                 <marker date="1469015808160" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="requestHandlers_bk.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/requestHandlers_bk.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="1201" column="2" selection-start-line="1201" selection-start-column="2" selection-end-line="1201" selection-end-column="2" />
-              <folding>
-                <marker date="1468949109254" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-                <marker date="1468949109254" expanded="true" signature="7675:7685" placeholder="..." />
-                <marker date="1468949109254" expanded="true" signature="43124:43134" placeholder="..." />
-                <marker date="1468949109254" expanded="true" signature="44963:44973" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -284,7 +264,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="27" width="1026" height="742" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23030907" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32786885" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -292,7 +272,7 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32894737" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32402793" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.66721314" sideWeight="0.4885344" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.66721314" sideWeight="0.4885344" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -732,19 +712,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/requestHandlers_bk.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1201" column="2" selection-start-line="1201" selection-start-column="2" selection-end-line="1201" selection-end-column="2" />
-          <folding>
-            <marker date="1468949109254" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1468949109254" expanded="true" signature="7675:7685" placeholder="..." />
-            <marker date="1468949109254" expanded="true" signature="43124:43134" placeholder="..." />
-            <marker date="1468949109254" expanded="true" signature="44963:44973" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -775,7 +742,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/requestHandlers.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.2328767">
+        <state vertical-scroll-proportion="0.3254973">
           <caret line="1181" column="20" selection-start-line="1181" selection-start-column="20" selection-end-line="1181" selection-end-column="20" />
           <folding>
             <marker date="1469015808160" expanded="true" signature="1028:1050" placeholder="/*...*/" />

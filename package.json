@@ -26,7 +26,8 @@
     "xml2json": ">= 0.9.1",
     "formidable": ">= 1.0.17",
     "querystring": ">= 0.2.0",
-    "request": ">= 2.72.0"
+    "request": ">= 2.72.0",
+    "synchoronize": ">= 0.9.15"
   },
   "homepage": "https://github.com/wk0206/testPorject2#readme",
   "devDependencies": {}
