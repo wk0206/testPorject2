@@ -562,6 +562,7 @@ function treatData(prefix,data ,simpledataFlag){
                 if(count==1){
                     ele={};
                     ele["indentation"] ="";
+                    console.log(att);
                     ele["att"]=att;
                     ele["val"]=att;
 //console.log("add an element to title: "+ att);
@@ -646,8 +647,11 @@ function treatData(prefix,data ,simpledataFlag){
             }
             ele={};
             ele["indentation"] ="";
-            ele["att"]=att;
-            ele["val"]=val;
+
+            ele["att"]=cleanValue(att);
+            console.log(att);
+            console.log(ele["att"]);
+            ele["val"]=cleanValue(val);
             title.push(ele);
         }
         rows.push(title);
@@ -673,6 +677,38 @@ function JSONtoCSV(inputCSV, title){
     return res;
 }
 
+function cleanValue(aValue){
+    var res="";
+    var heading="";
+    var tail="";
+
+    if(aValue.slice(aValue.length-1)==","){
+        tail = aValue.slice(0,aValue.length-1);
+        res = tail;
+    }else if(aValue.slice(aValue.length-1)=="]"){
+        tail = aValue.slice(0,aValue.length-1);
+        res = tail;
+    }else{
+        tail = aValue;
+        res = aValue;
+    }
+
+
+    if(aValue.slice(0,2)==":["){
+        heading = tail.slice(2,aValue.length-1);
+        res=heading;
+    }else if(aValue.slice(0,1)=="["){
+        heading = tail.slice(0,aValue.length-1);
+        res=heading;
+    }else{
+        res = tail;
+    }
+
+    console.log("aValue"+aValue);
+    console.log("res "+res);
+
+    return res;
+}
 
 function JSONtoConsoleCSV(inputCSV, title){
     var res = "";
@@ -928,8 +964,8 @@ function addDataToExist(prefix, originalData, additionalData, simpledataFlag){
             }
             ele={};
             ele["indentation"] ="";
-            ele["att"]=att;
-            ele["val"]=val;
+            ele["att"]=cleanValue(att);
+            ele["val"]=cleanValue(val);
             rowPrefix.push(ele);
         }
         rows.push(rowPrefix);
