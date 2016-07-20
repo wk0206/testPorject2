@@ -13,14 +13,16 @@ function start(route, handle) {
 
         var path = "/"
         if(pathname!='/favicon.ico'){
-            console.log("Request for " + pathname + " received.");
+            var date = new Date();
+            console.log(date.toISOString()+": Request for " + pathname + " received.");
         }
         //console.log("Request for " + pathname + " received.");
         route(handle, path, response, request, postData);
     }
 
     http.createServer(onRequest).listen(8888);
-    console.log("Server has started.");
+    var date = new Date();
+    console.log(date.toISOString()+": Server has started.");
 }
 
 exports.start = start;
