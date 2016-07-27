@@ -486,12 +486,15 @@ function cleanResult(res){
             for(var j = 1; j < data.length ; j++){
 //console.log("data[j][i].val="+data[j][i].val);
 //console.log("uselessArray.indexOf(data[j][i].val)="+uselessArray.indexOf(data[j][i].val));
-                if(uselessArray.indexOf(data[j][i].val)==-1){
-                    titleLine[i]["output"]=true;
-                    break;
-                }else {
-                    titleLine[i]["output"]=false;
+                if(uselessArray.indexOf(data[j][i].val)!=undefined){
+                    if(uselessArray.indexOf(data[j][i].val)==-1){
+                        titleLine[i]["output"]=true;
+                        break;
+                    }else {
+                        titleLine[i]["output"]=false;
+                    }
                 }
+
             }
 //console.log("log is"+titleLine[i]["output"]);
         }
@@ -758,10 +761,10 @@ function JSONtoHTML(inputCSV, title){
 //console.log("lets see input one is wrong :"+inputCSV.length);
 //console.log("lets see title one is wrong:"+title.length);
         for(indexA in inputCSV){
-//console.log("inputCSV is "+inputCSV[indexA].att);
+console.log("inputCSV is "+inputCSV[indexA].att);
         }
         for(indexB in title){
-//console.log("title is "+title[indexB].att);
+console.log("title is "+title[indexB].att);
         }
     }
     var res = "";
@@ -1285,9 +1288,9 @@ function realfunction(response,request,postData) {
                     var htmlLine = JSONtoHTML(treatJS[i][j],title);
                     result+=(htmlLine);
                     var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
-                    //console.log(consoleLine);
+                    console.log(consoleLine);
                     var consoleLineall = JSONtoConsoleCSVALL(treatJS[i][j],title);
-                    console.log(consoleLineall);
+                    //console.log(consoleLineall);
                 }
                 console.log("");
                 result+=("</table>");
