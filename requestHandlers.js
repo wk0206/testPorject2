@@ -457,8 +457,147 @@ function treatJson( json ){
     }
 
     var result = cleanResult(res);
+
+    var test = [1,2,3,3,2,4];
+    console.log("tell me "+test.indexOf(2));
+
+
+
+    var mergedResult = mergeFinal(result);
+    return mergedResult;
+}
+
+function reduceColumn(column, outputColumnNumber){
+    var res = [];
+    for (var i = 0; i < outputColumnNumber.length; i++){
+        res.push(column[outputColumnNumber[i]]);
+    }
+
+    return res;
+}
+
+
+function checkTitle(title1, title2){
+
+    var mark = false;
+
+    if(title1.length==title2.length){
+
+        for(index in title1){
+            if( title1[index].att==title2[index].att){
+                mark=true;
+                continue;
+
+            }else{
+                mark=false;
+                break;
+            }
+        }
+    }
+    return mark;
+}
+
+function mergeFinal(tables){
+    console.log("mergeFinal start");
+
+    if(tables.length == 1){
+        return tables;
+    }
+
+    var res = [];
+    var mergedTable=[];
+    var mergeToTable=[];
+
+    //step 1
+    //delete useless column(output==false)
+    for (var i = 0; i < tables.length; i++){
+        var outputColumnNumber=[];
+        var outputColumns=[];
+        var title = tables[i][0];
+
+        //get out useful column , put into outputColumnNumber array
+        for(var index=0; index < title.length; index++){
+            if(title[index].output){
+                outputColumnNumber.push(index);
+            }
+        }
+        for(index in tables[i]){
+
+            outputColumns.push(reduceColumn(tables[i][index],outputColumnNumber));
+        }
+
+        res.push(outputColumns);
+    }
+
+
+    //step2
+    //merge same title tables
+    for (var i = 0; i < res.length; i++){
+        if(mergedTable.length>0 && mergedTable.indexOf(i)>-1){
+            console.log("merged before");
+            continue;
+        }
+        var title = res[i][0];
+
+        for (var j = i+1; j < res.length; j++){
+            //this table merged by privious
+            if(mergedTable.length>0 && mergedTable.indexOf(j)>-1){
+                console.log("merged before");
+                continue;
+            }
+
+            //merge
+            var anotherTitle = res[j][0];
+
+            var mergeMark=checkTitle(title,anotherTitle);
+
+            //check title, if same, set merge mark = true
+            if(mergeMark==false){
+                continue;
+            }else{
+                mergedTable.push(j);
+                mergeToTable.push([j,i])
+            }
+
+            //if merge mark = true, then merge
+            if(mergeMark==true){
+                for (var index = 1 ; index < res[j].length; index++ ){
+                    //build row
+                    var tempRow = res[i].slice(0);
+                    tempRow.push(res[j][index]);
+                    res[i]=tempRow;
+                }
+
+                console.log("merge them");
+            }else{
+                continue;
+            }
+        }
+        //var title = treatJS[i][0]
+
+        //console.log(title);
+
+
+    }
+
+    console.log("mergedTable"+mergedTable);
+    console.log("mergeToTable"+mergeToTable);
+
+    //get out non-empty tables
+    var result=[];
+
+    for(var i = 0; i < res.length; i ++){
+        if(mergedTable.indexOf(i)==-1){
+            result.push(res[i]);
+        }
+    }
+
+
+    console.log("mergeFinal end");
     return result;
 }
+
+
 function cleanResult(res){
     var resCopy = res.slice(0);
     var uselessArray = [];
