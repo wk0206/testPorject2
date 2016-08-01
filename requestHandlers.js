@@ -385,6 +385,8 @@ function treatJson( json ){
 //console.log("this is a simple data");
             }
             index = findSameTitle(datas, cleanedPrefix, data, simpledataFlag);
+            //console.log("datas "+datas.length);
+            //console.log("same title at "+index);
 //console.log("-------------index is "+index+"-------------");
             //prefix is same ,
             if(index>=0){
@@ -454,15 +456,10 @@ function treatJson( json ){
     var res = [];
     for(var i = 0; i< datas.length ; i++){
         res.push(datas[i].datablock);
+
     }
 
     var result = cleanResult(res);
-
-    var test = [1,2,3,3,2,4];
-    console.log("tell me "+test.indexOf(2));
-
-
-
     var mergedResult = mergeFinal(result);
     return mergedResult;
 }
@@ -498,7 +495,7 @@ function checkTitle(title1, title2){
 }
 
 function mergeFinal(tables){
-    console.log("mergeFinal start");
+    //console.log("mergeFinal start");
 
     if(tables.length == 1){
         return tables;
@@ -580,8 +577,8 @@ function mergeFinal(tables){
 
     }
 
-    console.log("mergedTable"+mergedTable);
-    console.log("mergeToTable"+mergeToTable);
+//    console.log("mergedTable"+mergedTable);
+//    console.log("mergeToTable"+mergeToTable);
 
     //get out non-empty tables
     var result=[];
@@ -592,8 +589,7 @@ function mergeFinal(tables){
         }
     }
 
-
-    console.log("mergeFinal end");
+//    console.log("mergeFinal end");
     return result;
 }
 
@@ -604,7 +600,10 @@ function cleanResult(res){
     uselessArray.push(": {");
     uselessArray.push(":[");
     uselessArray.push("-");
-    for(idx in res){
+    uselessArray.push(" ");
+    uselessArray.push("");
+    for(var idx=0; idx<res.length; idx++){
+        //console.log("happend at "+ idx);
         var data = res[idx];
         var titleLine = data[0].slice(0);
         var associativeArray = {};
@@ -617,22 +616,40 @@ function cleanResult(res){
             }
 
             if(Object.keys(associativeArray).indexOf(titleLine[i].att)>-1)　{
-                titleLine[i].val = titleLine[i].att +　associativeArray[titleLine[i].att];
+                if(associativeArray[titleLine[i].att]>1){
+                    titleLine[i].val = titleLine[i].att +　associativeArray[titleLine[i].att];
+                }
+
             }
         }
 
+        //console.log("data[0].length" + data[0].length);
+        //console.log("data.length" + data.length);
+
+        for(var i = 0; i < data.length ; i++){
+            //console.log("data["+i+"].length" + data[i].length);
+        }
+
+        //i is column
         for(var i = 0; i < data[0].length ; i++){
+            //j is row
             for(var j = 1; j < data.length ; j++){
-//console.log("data[j][i].val="+data[j][i].val);
-//console.log("uselessArray.indexOf(data[j][i].val)="+uselessArray.indexOf(data[j][i].val));
-                if(uselessArray.indexOf(data[j][i].val)!=undefined){
-                    if(uselessArray.indexOf(data[j][i].val)==-1){
-                        titleLine[i]["output"]=true;
-                        break;
-                    }else {
-                        titleLine[i]["output"]=false;
+
+                //console.log("data["+j+"]["+i+"]="+data[j][i]);
+                //console.log("data["+j+"]["+i+"].att="+data[j][i].att);
+                //console.log("data["+j+"]["+i+"].val="+data[j][i].val);
+                //console.log("uselessArray.indexOf(data["+j+"]["+i+"].val)="+uselessArray.indexOf(data[j][i].val));
+                if((uselessArray.indexOf(data[j][i]))!=undefined){
+                    if(uselessArray.indexOf(data[j][i].val)!=undefined){
+                        if(uselessArray.indexOf(data[j][i].val)==-1){
+                            titleLine[i]["output"]=true;
+                            break;
+                        }else {
+                            titleLine[i]["output"]=false;
+                        }
                     }
                 }
+
 
             }
 //console.log("log is"+titleLine[i]["output"]);
@@ -661,6 +678,12 @@ function addNewPage(response,request, postdata){
     response.write(postdata);
     response.end;
 }
+
+
+//this function is mainly work on the data(detect by other function)
+//if the datas are regular (same format or same construction)
+//if the data is single (without a brother leaf)
+//if the data is irregular(different from each other)
 function treatData(prefix,data ,simpledataFlag){
 //console.log("build datablock:start");
 //console.log("entered prefix");
@@ -673,6 +696,9 @@ function treatData(prefix,data ,simpledataFlag){
     var rows = [];
     var rowPrefix = prefix.slice(0);
     var dataStack = [];
+
+
+    //copy prefix
     for(idx in prefix){
         var ele = {};
         ele={};
@@ -681,14 +707,67 @@ function treatData(prefix,data ,simpledataFlag){
         ele["val"]= cleanValue(prefix[idx].att);
         title.push(ele);
     }
+
     var count = 0;
     var pieceOfDataFlag = 0;
     var rowItemCount = 0;
     var inRowFlag = false;
     var tempTitle = [];
+
+    //data is not a simple data
     if(simpledataFlag==false){
-        for(var i = 0 ; i < data.length; i++){
+
+        //this loop determains title
+        for(var i = 0 ; i < data.length; i++) {
+
+            //for some data has attribute
             var splitPoint = data[i].line.indexOf(":");
+
+            //detect a start
+            if (data[i].line.indexOf("{") > -1) {
+                if (pieceOfDataFlag == 0) {
+//console.log("start of a piece of data");
+                    dataStack.length = 0;
+                    count++;
+                }
+                pieceOfDataFlag++;
+                inRowFlag = true;
+            }
+
+            //detect an end
+            if (data[i].line.indexOf("}") > -1) {
+                pieceOfDataFlag--;
+                inRowFlag = false;
+            }
+
+            //split attribute
+            if (splitPoint > -1) {
+                var att = data[i].line.substring(0, splitPoint);
+                var val = data[i].line.substring(splitPoint + 1);
+                if (count == 1) {
+                    ele = {};
+                    ele["indentation"] = "";
+                    ele["att"] = cleanValue(att);
+                    ele["val"] = cleanValue(att);
+//console.log("add an element to title: "+ att);
+                    title.push(ele);
+                    tempTitle.push(ele);
+                }
+                else if(count>1){
+                    break;
+                }
+            }
+        }
+
+        pieceOfDataFlag=0;
+
+        //this loop determains data
+        for(var i = 0 ; i < data.length; i++){
+
+            //for some data has attribute
+            var splitPoint = data[i].line.indexOf(":");
+
+            //detect a start
             if(data[i].line.indexOf("{")>-1){
                 if(pieceOfDataFlag==0){
 //console.log("start of a piece of data");
@@ -698,22 +777,17 @@ function treatData(prefix,data ,simpledataFlag){
                 pieceOfDataFlag++;
                 inRowFlag=true;
             }
+
+            //detect an end
             if(data[i].line.indexOf("}")>-1){
                 pieceOfDataFlag--;
                 inRowFlag=false;
             }
-            if (splitPoint>-1){
-                var att = data[i].line.substring(0,splitPoint);
-                var val = data[i].line.substring(splitPoint+1);
-                if(count==1){
-                    ele={};
-                    ele["indentation"] ="";
-                    ele["att"]=cleanValue(att);
-                    ele["val"]=cleanValue(att);
-//console.log("add an element to title: "+ att);
-                    title.push(ele);
-                    tempTitle.push(ele);
-                }
+            //split attribute
+            if (splitPoint > -1) {
+                var att = data[i].line.substring(0, splitPoint);
+                var val = data[i].line.substring(splitPoint + 1);
+
                 var temp = val;
                 //delete useless comma
                 if(temp.substring(val.length-1)==","){
@@ -723,7 +797,10 @@ function treatData(prefix,data ,simpledataFlag){
                 if(temp.substring(val.length-1)=="{"){
                     temp = "-";
                 }
+
+                //not first row
                 if(rows.length >1){
+                    /*
                     //normal branch,
                     if(tempTitle.length>rowItemCount){
                         if(tempTitle[rowItemCount].att==att){
@@ -737,12 +814,28 @@ function treatData(prefix,data ,simpledataFlag){
                         }else{
                             //unusual case, row item is different from title at[rowItemCount]
                             //temproary :omit this item, keep title
+                            ele={};
+                            ele["indentation"] = tempTitle[rowItemCount].indentation;
+                            ele["att"]=tempTitle[rowItemCount].att;
+                            ele["val"]="-";
+
                             rowItemCount--;
                         }
                     }else{
                         //this branch means, rows has more column than title
                     }
-                }else{
+                    */
+
+                    ele={};
+                    ele["indentation"] = data[i].indentation;
+                    ele["att"]=cleanValue(att);
+                    ele["val"]=cleanValue(temp);
+                    dataStack.push(ele);
+
+                }
+
+                //very first row, always same as title
+                else{
                     ele={};
                     ele["indentation"] = data[i].indentation;
                     ele["att"]=cleanValue(att);
@@ -750,7 +843,10 @@ function treatData(prefix,data ,simpledataFlag){
                     dataStack.push(ele);
                 }
                 rowItemCount++;
+
+                //the new build row, has length smaller than the last row in [rows]-[prefix]
                 if(rows.length>1 && rowItemCount<=(rows[rows.length-1].length-prefix.length)){
+                    //the last row in [rows],the element of index of [new build last] not equal to new build row's last
                     if(rows[rows.length-1][prefix.length+rowItemCount-1].att!=att){
 //console.log("not same");
 //console.log(rows[rows.length-1][prefix.length+rowItemCount-1]);
@@ -761,25 +857,40 @@ function treatData(prefix,data ,simpledataFlag){
 //console.log(att);
                     }
                 }else{
-                    rowItemCount--;
+                    //rowItemCount--;
                 }
             }
+
+            //piece of data finish, attach to rows
+            //console.log("pieceOfDataFlag = "+pieceOfDataFlag);
             if(data[i].line.indexOf("}")>-1 && (pieceOfDataFlag==0)){
 //console.log("end of a piece of data")
                 var temp = prefix.slice(0);
 //console.log("sepecial treat");
 //console.log(prefix);
 //console.log("sepecial treat");
-                for (idx in dataStack){
-                    temp.push(dataStack[idx]);
+                //console.log(tempTitle);
+                //console.log(dataStack);
+                var tempData = adaptDataToTitle(tempTitle,dataStack);
+                //console.log(tempData);
+
+                for (idx in tempData){
+                    temp.push(tempData[idx]);
                 }
                 var row = temp;
                 rowItemCount=0;
+                //console.log("row-----"+row.length);
                 rows.push(row);
             }
         }
+
+        //attach title to the first row
+        //console.log("title-----"+title.length);
+
         rows.unshift(title);
-    }else{
+    }
+    //this is for simple/single data
+    else{
         for(var i = 0 ; i < data.length; i++){
             var splitPoint = data[i].line.indexOf(":");
             if(splitPoint>-1){
@@ -801,6 +912,81 @@ function treatData(prefix,data ,simpledataFlag){
     }
 //console.log("build datablock:end");
     return rows;
+}
+
+
+function adaptDataToTitle(title, data){
+    var res=[];
+    var sameMark=true;
+
+    if(title.length==data.length){
+        for(var i = 0; i < title.length; i++){
+            if(title[i].att!=data[i].att){
+                sameMark=false;
+            }
+        }
+    }else{
+        sameMark=false;
+    }
+
+    //same structure, change nothing, return directly
+    if(sameMark==true){
+        return data;
+    }
+
+    //title is fix,
+    //data shorter?
+    //data longer?
+    //data different?
+    var index = [];
+//console.log("--------------")
+    if(sameMark==false){
+        var tempTitle = title.slice(0);
+
+        for(var i = 0; i <tempTitle.length; i++){
+            //console.log("i= "+i);
+            //console.log("title "+title[i]);
+            var temp = tempTitle.slice(i,i+1);
+            //var ele = temp[0];
+
+            var att = temp[0].att;
+            var val = temp[0].val;
+
+            var changed=false;
+            var ele = {};
+            //search att in data, replace val in ele
+            for (var j = 0; j < data.length ; j ++){
+                //grab same attribute , this attribute must not used before.
+                /*
+                console.log("data[j].att "+data[j].att);
+                console.log("ele.att "+ele.att);
+                console.log("ele.val before "+ ele.val);
+                console.log("data[j].att == ele.att "+(data[j].att == ele.att));
+                console.log("index.indexOf(j)"+index.indexOf(j))
+                */
+                if(data[j].att == att && index.indexOf(j)==-1){
+
+                    var ele = {};
+                    ele["att"] = att;
+                    ele["val"] = data[j].val;
+                    index.push(j);
+                    changed = true;
+                    break;
+                }else{
+                    change = false;
+                }
+            }
+
+            if(changed==false){
+                var ele = {};
+                ele["att"] = att;
+                ele["val"] = "-";
+            }
+            res.push(ele);
+        }
+    }
+
+    return res;
 }
 
 function JSONtoCSV(inputCSV, title){
@@ -865,7 +1051,11 @@ function JSONtoConsoleCSV(inputCSV, title){
     res+="";
     for(idx in inputCSV){
         if(title[idx].output==true){
-            res+=inputCSV[idx].val;
+            if(inputCSV[idx]==undefined){
+                res+="wrong here";
+            }else{
+                res+=inputCSV[idx].val;
+            }
             if(res.substring(res.length-1)==","){
             }else {
                 res+=",";
@@ -882,7 +1072,11 @@ function JSONtoConsoleCSVALL(inputCSV, title){
     res+="";
     for(idx in inputCSV){
         if(1==1){
-            res+=inputCSV[idx].val;
+            if(inputCSV[idx]==undefined){
+                res+="wrong here";
+            }else{
+                res+=inputCSV[idx].val;
+            }
             if(res.substring(res.length-1)==","){
             }else {
                 res+=",";
@@ -894,16 +1088,20 @@ function JSONtoConsoleCSVALL(inputCSV, title){
     return res;
 }
 
+
+function debugValue(){
+
+}
 function JSONtoHTML(inputCSV, title){
 
     if(inputCSV.length!=title.length){
 //console.log("lets see input one is wrong :"+inputCSV.length);
 //console.log("lets see title one is wrong:"+title.length);
         for(indexA in inputCSV){
-console.log("inputCSV is "+inputCSV[indexA].att);
+//console.log("inputCSV is "+inputCSV[indexA].att);
         }
         for(indexB in title){
-console.log("title is "+title[indexB].att);
+//console.log("title is "+title[indexB].att);
         }
     }
     var res = "";
@@ -912,7 +1110,12 @@ console.log("title is "+title[indexB].att);
 
         if(title[idx].output==true){
             res+="<td>";
-            res+=inputCSV[idx].val;
+            if(inputCSV[idx]==undefined){
+                res+="wrong here";
+            }else{
+                res+=inputCSV[idx].val;
+            }
+
             res+="</td>";
         }
     }
@@ -1344,7 +1547,7 @@ function checkData(originalData, prefixLength, comparedData, simpledataFlag){
     //console.log("original title is "+originalTitle);
     for (var i = 0; i < dataTitle.length ; i++){
         if(dataTitle[dataTitle.length-i-1].att!=originalTitle[originalTitle.length-i-1].att){
-console.log("checkData end: title context different, return -1");
+//console.log("checkData end: title context different, return -1");
             return -1;
         }
     }
