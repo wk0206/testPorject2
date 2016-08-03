@@ -531,7 +531,7 @@ function mergeFinal(tables){
     //merge same title tables
     for (var i = 0; i < res.length; i++){
         if(mergedTable.length>0 && mergedTable.indexOf(i)>-1){
-            console.log("merged before");
+            //console.log("merged before");
             continue;
         }
         var title = res[i][0];
@@ -565,7 +565,7 @@ function mergeFinal(tables){
                     res[i]=tempRow;
                 }
 
-                console.log("merge them");
+                //console.log("merge them");
             }else{
                 continue;
             }
