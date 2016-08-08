@@ -27,8 +27,7 @@
     "formidable": ">= 1.0.17",
     "querystring": ">= 0.2.0",
     "request": ">= 2.72.0",
-    "synchronize": ">= 0.9.15",
-    "mkdirp": ">= 0.5.1"
+    "synchronize": ">= 0.9.15"
   },
   "homepage": "https://github.com/wk0206/testPorject2#readme",
   "devDependencies": {}
