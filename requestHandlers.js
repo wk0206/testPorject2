@@ -1622,7 +1622,7 @@ function realfunction(response,request,postData) {
                     var htmlLine = JSONtoHTML(treatJS[i][j],title);
                     result+=(htmlLine);
                     var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
-                    console.log(consoleLine);
+                    //console.log(consoleLine);
                     aCSV+=consoleLine;
                     aCSV+='\n';
                     var consoleLineall = JSONtoConsoleCSVALL(treatJS[i][j],title);
