@@ -6,6 +6,7 @@ var traverse = require('traverse');
 var parser = require('xml2json');
 var formidable = require("formidable");
 var sync = require('synchronize');
+var libxmljs = require("libxmljs");
 function start(response) {
     console.log("Request handler 'start' was called.");
     var body = '<html>'+
@@ -512,6 +513,10 @@ function mergeFinal(tables){
         var outputColumns=[];
         var title = tables[i][0];
 
+        if(title.length == 0){
+            continue;
+        }
+
         //get out useful column , put into outputColumnNumber array
         for(var index=0; index < title.length; index++){
             if(title[index].output){
@@ -536,6 +541,10 @@ function mergeFinal(tables){
         }
         var title = res[i][0];
 
+        if(title.length == 0){
+            continue;
+        }
+
         for (var j = i+1; j < res.length; j++){
             //this table merged by privious
             if(mergedTable.length>0 && mergedTable.indexOf(j)>-1){
@@ -546,13 +555,19 @@ function mergeFinal(tables){
             //merge
             var anotherTitle = res[j][0];
 
+            if(anotherTitle.length == 0){
+                continue;
+            }
+
             var mergeMark=checkTitle(title,anotherTitle);
 
             //check title, if same, set merge mark = true
             if(mergeMark==false){
                 continue;
             }else{
+                //j is merged
                 mergedTable.push(j);
+                //j to i
                 mergeToTable.push([j,i])
             }
 
@@ -602,6 +617,10 @@ function cleanResult(res){
     uselessArray.push("-");
     uselessArray.push(" ");
     uselessArray.push("");
+    uselessArray.push("{");
+    uselessArray.push(" {");
+    uselessArray.push("[");
+    uselessArray.push(" [");
     for(var idx=0; idx<res.length; idx++){
         //console.log("happend at "+ idx);
         var data = res[idx];
@@ -865,7 +884,18 @@ function treatData(prefix,data ,simpledataFlag){
             //console.log("pieceOfDataFlag = "+pieceOfDataFlag);
             if(data[i].line.indexOf("}")>-1 && (pieceOfDataFlag==0)){
 //console.log("end of a piece of data")
-                var temp = prefix.slice(0);
+                //var temp = prefix.slice(0);
+
+                var temp = [];
+                //copy prefix
+                for(idx in prefix){
+                    var ele = {};
+                    ele={};
+                    ele["indentation"] = prefix[idx].indentation;
+                    ele["att"]= cleanValue(prefix[idx].att);
+                    ele["val"]= cleanValue(prefix[idx].val);
+                    temp.push(ele);
+                }
 //console.log("sepecial treat");
 //console.log(prefix);
 //console.log("sepecial treat");
@@ -1007,6 +1037,8 @@ function JSONtoCSV(inputCSV, title){
 }
 
 function cleanValue(aValue){
+
+
     var res="";
     var heading="";
     var tail="";
@@ -1044,6 +1076,7 @@ function cleanValue(aValue){
 
     //console.log("in  "+ aValue);
     //console.log("out "+ res);
+
     return res;
 }
 function JSONtoConsoleCSV(inputCSV, title){
@@ -1341,7 +1374,17 @@ function addDataToExist(prefix, originalData, additionalData, simpledataFlag){
                 dataStack.push(ele);
             }
             if(additionalData[i].line.indexOf("}")>-1){
-                var temp = rowPrefix.slice(0);
+                //var temp = rowPrefix.slice(0);
+                var temp = [];
+                for(idx in rowPrefix){
+                    var ele = {};
+                    ele={};
+                    ele["indentation"] = prefix[idx].indentation;
+                    ele["att"]= cleanValue(prefix[idx].att);
+                    ele["val"]= cleanValue(prefix[idx].val);
+                    temp.push(ele);
+                }
+
                 for (idx in dataStack){
                     temp.push(dataStack[idx]);
                 }
@@ -1593,8 +1636,58 @@ function realfunction(response,request,postData) {
             //toJson = sync(toJson);
             sync(parser, 'toJson');
             var json = parser.toJson(body);
-            //console.log("json log");
 
+            //var xml = libxmljs.parseXmlString(body);
+            var xml = libxmljs.parseXmlString(body,{ noblanks: true });
+            //console.log("json log");
+            //----------------------------------------------
+            //console.log("xml "+xml)
+            var gchild = xml.get('//book');
+            //console.log("book "+gchild);
+            //console.log("author "+xml.get('//author'))
+
+            var contactElement = xml.root();
+            var idElement = contactElement.childNodes()[1];
+            var id = idElement.childNodes()[1];
+            var lastNameElement = contactElement.childNodes()[contactElement.childNodes().length-2];
+            var lastName = lastNameElement.childNodes()[1];
+            var firstNameElement = contactElement.childNodes()[2];
+            var firstName1 = firstNameElement.childNodes()[0];
+            var children = xml.root().childNodes();
+            var child = children[0];
+
+            //console.log("contactElement "+contactElement);
+            //console.log("idElement "+idElement);
+            //console.log("id "+id);
+            //console.log("lastNameElement "+lastNameElement);
+            //console.log("lastName "+lastName);
+            //console.log("firstNameElement "+firstNameElement);
+            //console.log("firstName1 "+firstName1);
+            //console.log("children "+children);
+            //console.log("children length"+children.length);
+            //console.log("child "+child);
+            for(var i = 0 ; i < children.length; i ++){
+                console.log("children["+i+"] "+children[i]);
+            }
+
+            var xml2 = libxmljs.parseXmlString(children[1]);
+            var contactElement = xml2.root();
+
+            var idElement = contactElement.childNodes()[0];
+            console.log("contactElement "+contactElement);
+            console.log("idElement "+idElement);
+            console.log("childNodes().length "+contactElement.childNodes().length);
+
+            for(var i = 0 ; i < contactElement.childNodes().length; i ++){
+                console.log("sub child "+contactElement.child(i));
+                console.log(contactElement.childNodes()[i].name());
+                console.log(contactElement.childNodes()[i].text());
+                console.log(contactElement.childNodes()[i].attrs());
+                console.log(contactElement.childNodes()[i].path());
+
+            }
+
+            //----------------------------------------------
             //this is the handle the tag given by xml2json
             var str = json.replace(/\"\$t\"/g,"\"description\"");
 
@@ -1608,19 +1701,21 @@ function realfunction(response,request,postData) {
             for (var i = 0 ; i<treatJS.length; i ++){
                 result+=("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
                 result+=("<div id=\"toc"+i+"\" hidden>");
-                result+=("<table style=\"width:100%\">");
+                result+=("<table style=\"width:100%\" border=1>");
 
                 var title = treatJS[i][0];
                 //console.log("^^^^^^^^final log^^^^^^^^");
                 //console.log(title);
                 //console.log("^^^^^^^^final log end^^^^");
 
+                //console.log("treatJS["+i+"] length is // row count"+treatJS[i].length);
                 var aCSV = "";
                 for (var j = 0; j < treatJS[i].length; j++){
                     //var htmlLine = JSONtoCSV(treatJS[i][j],title);
                     //var htmlLine = JSONtoConsoleCSV(treatJS[i][j],title);
                     var htmlLine = JSONtoHTML(treatJS[i][j],title);
                     result+=(htmlLine);
+                    //console.log("treatJS["+i+"]["+j+"] length is //column count"+treatJS[i][j].length);
                     var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
                     //console.log(consoleLine);
                     aCSV+=consoleLine;
@@ -1629,7 +1724,7 @@ function realfunction(response,request,postData) {
                     //console.log(consoleLineall);
                 }
                 resultArray.push(aCSV);
-                console.log("");
+                //console.log("");
                 result+=("</table>");
                 result+=("</div>");
                 result+=("<br/>");

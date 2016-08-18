@@ -2,23 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a8e86b55-057c-4be5-a15c-f6d44109c6b5" name="Default" comment="upload for combine similar tables">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/SigmodRecord.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/book.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/customer.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lineitem.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/orders.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/partsupp.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sample1M.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sample227k.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sample23M.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sample603k.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_simple.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_simple_obeu.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_simple_obeu_short.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_simple_obeu_short_formatted.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/treebank_e.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/uwm.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/wsu.xml" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/requestHandlers.js" afterPath="$PROJECT_DIR$/requestHandlers.js" />
     </list>
@@ -44,12 +27,12 @@
       <file leaf-file-name="requestHandlers.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/requestHandlers.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.37457046">
-              <caret line="1624" column="22" selection-start-line="1624" selection-start-column="22" selection-end-line="1624" selection-end-column="22" />
+            <state vertical-scroll-proportion="0.76340693">
+              <caret line="1685" column="63" selection-start-line="1685" selection-start-column="63" selection-end-line="1685" selection-end-column="63" />
               <folding>
-                <element signature="e#44721#45958#0" expanded="false" />
-                <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-                <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+                <element signature="e#32577#33172#0" expanded="false" />
+                <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+                <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -89,7 +72,7 @@
         <entry file="file://$PROJECT_DIR$/requestHandlers_full_log.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1177" column="0" selection-start-line="1177" selection-start-column="0" selection-end-line="1177" selection-end-column="0" />
+              <caret line="1139" column="0" selection-start-line="1139" selection-start-column="0" selection-end-line="1139" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -165,7 +148,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
@@ -187,6 +169,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -278,25 +261,25 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="27" width="1026" height="742" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23030907" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32786885" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.895082" sideWeight="0.5114656" order="10" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32894737" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32786885" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32402793" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.66065574" sideWeight="0.4885344" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.43442622" sideWeight="0.4885344" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32894737" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24949084" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32730263" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -321,18 +304,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/requestHandlers.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../NewWeb/js/NewWeb.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -366,9 +337,9 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+            <element signature="e#32577#33172#0" expanded="false" />
+            <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+            <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -406,9 +377,9 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+            <element signature="e#32577#33172#0" expanded="false" />
+            <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+            <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -460,9 +431,9 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+            <element signature="e#32577#33172#0" expanded="false" />
+            <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+            <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -500,9 +471,9 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+            <element signature="e#32577#33172#0" expanded="false" />
+            <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+            <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -540,9 +511,9 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+            <element signature="e#32577#33172#0" expanded="false" />
+            <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+            <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -573,9 +544,9 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+            <element signature="e#32577#33172#0" expanded="false" />
+            <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+            <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -648,13 +619,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/node_modules/xml2json/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/EcmaScript5.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.025773196">
@@ -676,22 +640,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/requestHandlers_full_log.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1177" column="0" selection-start-line="1177" selection-start-column="0" selection-end-line="1177" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/router.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="21" column="22" selection-start-line="21" selection-start-column="22" selection-end-line="21" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -708,14 +656,46 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/router.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="21" column="22" selection-start-line="21" selection-start-column="22" selection-end-line="21" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/requestHandlers_full_log.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1139" column="0" selection-start-line="1139" selection-start-column="0" selection-end-line="1139" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/lib/JavaScriptLanguage.jar!/com/intellij/lang/javascript/index/predefined/DHTML.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.20446736">
+          <caret line="238" column="31" selection-start-line="238" selection-start-column="0" selection-end-line="239" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/node_modules/xml2json/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/requestHandlers.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.37457046">
-          <caret line="1624" column="22" selection-start-line="1624" selection-start-column="22" selection-end-line="1624" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.76340693">
+          <caret line="1685" column="63" selection-start-line="1685" selection-start-column="63" selection-end-line="1685" selection-end-column="63" />
           <folding>
-            <element signature="e#44721#45958#0" expanded="false" />
-            <marker date="1471261726356" expanded="true" signature="1028:1050" placeholder="/*...*/" />
-            <marker date="1471261726356" expanded="true" signature="55470:55480" placeholder="..." />
+            <element signature="e#32577#33172#0" expanded="false" />
+            <marker date="1471524482188" expanded="true" signature="1064:1086" placeholder="/*...*/" />
+            <marker date="1471524482188" expanded="true" signature="59093:59103" placeholder="..." />
           </folding>
         </state>
       </provider>
