@@ -257,6 +257,63 @@ function addAllColumnHeaders(myList, selector){
     $(selector).append(headerTr$);
     return columnSet;
 }
+
+
+function treatXMLFile(xmlInput){
+
+    //var xml = libxmljs.parseXmlString(body);
+    var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
+    //console.log("json log");
+    //----------------------------------------------
+    //console.log("xml "+xml)
+    var gchild = xml.get('//book');
+    //console.log("book "+gchild);
+    //console.log("author "+xml.get('//author'))
+
+    var contactElement = xml.root();
+    var idElement = contactElement.childNodes()[1];
+    var id = idElement.childNodes()[1];
+    var lastNameElement = contactElement.childNodes()[contactElement.childNodes().length-2];
+    var lastName = lastNameElement.childNodes()[1];
+    var firstNameElement = contactElement.childNodes()[2];
+    var firstName1 = firstNameElement.childNodes()[0];
+    var children = xml.root().childNodes();
+    var child = children[0];
+
+    //console.log("contactElement "+contactElement);
+    //console.log("idElement "+idElement);
+    //console.log("id "+id);
+    //console.log("lastNameElement "+lastNameElement);
+    //console.log("lastName "+lastName);
+    //console.log("firstNameElement "+firstNameElement);
+    //console.log("firstName1 "+firstName1);
+    //console.log("children "+children);
+    //console.log("children length"+children.length);
+    //console.log("child "+child);
+    for(var i = 0 ; i < children.length; i ++){
+        console.log("children["+i+"] "+children[i]);
+    }
+
+    var xml2 = libxmljs.parseXmlString(children[1]);
+    var contactElement = xml2.root();
+
+    var idElement = contactElement.childNodes()[0];
+    console.log("contactElement "+contactElement);
+    console.log("idElement "+idElement);
+    console.log("childNodes().length "+contactElement.childNodes().length);
+
+    for(var i = 0 ; i < contactElement.childNodes().length; i ++){
+        console.log("sub child "+contactElement.child(i));
+        console.log(contactElement.childNodes()[i].name());
+        console.log(contactElement.childNodes()[i].text());
+        console.log(contactElement.childNodes()[i].attrs());
+        console.log(contactElement.childNodes()[i].path());
+
+    }
+
+    //----------------------------------------------
+
+}
 function treatJson( json ){
     //console.log("transform from JOSN to HTML:start");
     //var temp = json.indexOf("{");
@@ -1637,62 +1694,13 @@ function realfunction(response,request,postData) {
             sync(parser, 'toJson');
             var json = parser.toJson(body);
 
-            //var xml = libxmljs.parseXmlString(body);
-            var xml = libxmljs.parseXmlString(body,{ noblanks: true });
-            //console.log("json log");
-            //----------------------------------------------
-            //console.log("xml "+xml)
-            var gchild = xml.get('//book');
-            //console.log("book "+gchild);
-            //console.log("author "+xml.get('//author'))
 
-            var contactElement = xml.root();
-            var idElement = contactElement.childNodes()[1];
-            var id = idElement.childNodes()[1];
-            var lastNameElement = contactElement.childNodes()[contactElement.childNodes().length-2];
-            var lastName = lastNameElement.childNodes()[1];
-            var firstNameElement = contactElement.childNodes()[2];
-            var firstName1 = firstNameElement.childNodes()[0];
-            var children = xml.root().childNodes();
-            var child = children[0];
-
-            //console.log("contactElement "+contactElement);
-            //console.log("idElement "+idElement);
-            //console.log("id "+id);
-            //console.log("lastNameElement "+lastNameElement);
-            //console.log("lastName "+lastName);
-            //console.log("firstNameElement "+firstNameElement);
-            //console.log("firstName1 "+firstName1);
-            //console.log("children "+children);
-            //console.log("children length"+children.length);
-            //console.log("child "+child);
-            for(var i = 0 ; i < children.length; i ++){
-                console.log("children["+i+"] "+children[i]);
-            }
-
-            var xml2 = libxmljs.parseXmlString(children[1]);
-            var contactElement = xml2.root();
-
-            var idElement = contactElement.childNodes()[0];
-            console.log("contactElement "+contactElement);
-            console.log("idElement "+idElement);
-            console.log("childNodes().length "+contactElement.childNodes().length);
-
-            for(var i = 0 ; i < contactElement.childNodes().length; i ++){
-                console.log("sub child "+contactElement.child(i));
-                console.log(contactElement.childNodes()[i].name());
-                console.log(contactElement.childNodes()[i].text());
-                console.log(contactElement.childNodes()[i].attrs());
-                console.log(contactElement.childNodes()[i].path());
-
-            }
-
-            //----------------------------------------------
             //this is the handle the tag given by xml2json
             var str = json.replace(/\"\$t\"/g,"\"description\"");
 
             //console.log(str);
             //console.log("json log");
+            var treatXML = treatXMLFile(body);
             treatJS = treatJson(str);
 
             var result = "";
