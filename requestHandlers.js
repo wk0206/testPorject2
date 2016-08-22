@@ -258,15 +258,161 @@ function addAllColumnHeaders(myList, selector){
     return columnSet;
 }
 
+function checkIsLeaf(aTree){
+    var isLeaf = false;
+    if(typeof (aTree)=="string"){
+
+    }else{
+        if(aTree.child(0)!=null){
+            if(aTree.child(0).toString().substring(0,1)!="<"){
+                isLeaf= true;
+            }
+        }
+    }
+
+    return isLeaf;
+}
+
+//put in a tree.
+//give out an array.
+function recFunc(aTree, parentArr, result, child){
+
+    //parent
+    var parent = [];
+    parent=parentArr.slice(0);
+
+    //global result
+    var res = result;
+
+    //go deep mark
+    var isLeaf = false;
+
+    //check input
+    if(typeof (aTree)=="string"){
+
+    }else{
+        if(aTree.child(0)!=null){
+            if(aTree.child(0).toString().substring(0,1)!="<"){
+               isLeaf= true;
+            }
+        }
+    }
+
+    //xml
+    var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
+
+    //root
+    var contactElement = xml.root();
+
+    //root name
+    var rootName=contactElement.name();
+
+
+    //var ele
+    var ele = {}
+    ele["Tree"] = aTree;
+    ele["Root"] = contactElement;
+    ele["RootName"] = rootName;
+    ele["Attribute"] = contactElement.attrs();
+    ele["Text"] = contactElement.text();
+    ele["Path"] = contactElement.path();
+    ele["Chilren"] = contactElement.childNodes();
+    ele["ChilrenNumber"] = contactElement.childNodes().length;
+    ele["Chilren[0]"] = contactElement.childNodes()[0];
+    ele["isLeaf"] = checkIsLeaf(aTree);
+
+
+    //add this name to parent(include itself)
+
+    parent.push(rootName);
+
+
+    // number of child
+    var children = xml.root().childNodes();
+    var childrenNumber = children.length;
+
+    var endRowMark = false;
+
+    //each child call recFunc again
+    if(isLeaf==false){
+
+        for(var i = children.length-1 ; i>-1 ; i--){
+
+            recFunc(children[i],parent,res,child);
+
+            if(i==0){
+                //last element
+                endRowMark = true;
+
+            }
+        }
+
+        parent.unshift("isNode");
+        res.unshift(parent);
+
+    }else {
+
+        /*
+        console.log("--------------------Child--------------------")
+        console.log(child)
+        console.log("--------------------Child--------------------")
+        */
+        child.unshift(rootName);
+        parent.unshift("isLeaf");
+        res.unshift(parent);
+    }
+
+
+    //combine rows
+    if(endRowMark == true){
+
+        for(var i = 0; i < child.length ; i ++){
+            //parent.push(child[i]);
+        }
+
+        //parent.unshift("isNode");
+
+        //res.unshift(parent);
+
+        child.length = 0;
+    }
+
+    //console.log(isLeaf);
+    //if find an leaf , return this root- node -leaf back
+    if(isLeaf==true || endRowMark == true){
+        //console.log("parent after " + parent);
+        return res;
+    }
+}
+
+function combinBranch(treeStructure){
+    var res = []
+    for(var i = 0; i < treeStructure.length; i++){
+
+        //.log("treeStructure[i].isLeaf==true? " + treeStructure[i][treeStructure[i].length-1].isLeaf);
+        if(treeStructure[i][treeStructure[i].length-1].isLeaf==true){
+            console.log(treeStructure[i]);
+        }
+    }
+
+
+}
 
 function treatXMLFile(xmlInput){
-
+    var treeStructure = [];
+    //result=recFunc(xmlInput,[],[]);
+    //console.log(result);
     //var xml = libxmljs.parseXmlString(body);
     var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
+    treeStructure=recFunc(xml,[],[],[]);
+    console.log(treeStructure);
+    combinBranch(treeStructure);
+
+
     //console.log("json log");
     //----------------------------------------------
     //console.log("xml "+xml)
-    var gchild = xml.get('//book');
+    //var gchild = xml.get('//book');
     //console.log("book "+gchild);
     //console.log("author "+xml.get('//author'))
 
@@ -291,23 +437,23 @@ function treatXMLFile(xmlInput){
     //console.log("children length"+children.length);
     //console.log("child "+child);
     for(var i = 0 ; i < children.length; i ++){
-        console.log("children["+i+"] "+children[i]);
+        //console.log("children["+i+"] "+children[i]);
     }
 
     var xml2 = libxmljs.parseXmlString(children[1]);
     var contactElement = xml2.root();
 
     var idElement = contactElement.childNodes()[0];
-    console.log("contactElement "+contactElement);
-    console.log("idElement "+idElement);
-    console.log("childNodes().length "+contactElement.childNodes().length);
+    //console.log("contactElement "+contactElement);
+    //console.log("idElement "+idElement);
+    //console.log("childNodes().length "+contactElement.childNodes().length);
 
     for(var i = 0 ; i < contactElement.childNodes().length; i ++){
-        console.log("sub child "+contactElement.child(i));
-        console.log(contactElement.childNodes()[i].name());
-        console.log(contactElement.childNodes()[i].text());
-        console.log(contactElement.childNodes()[i].attrs());
-        console.log(contactElement.childNodes()[i].path());
+        //console.log("sub child "+contactElement.child(i));
+        //console.log(contactElement.childNodes()[i].name());
+        //console.log(contactElement.childNodes()[i].text());
+        //console.log(contactElement.childNodes()[i].attrs());
+        //console.log(contactElement.childNodes()[i].path());
 
     }
 
