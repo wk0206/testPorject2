@@ -276,7 +276,7 @@ function checkIsLeaf(aTree){
 //put in a tree.
 //give out an array.
 function recFunc(aTree, parentArr, result, child){
-
+//console.log(aTree);
     //parent
     var parent = [];
     parent=parentArr.slice(0);
@@ -285,7 +285,7 @@ function recFunc(aTree, parentArr, result, child){
     var res = result;
 
     //go deep mark
-    var isLeaf = false;
+    var isLeaf = checkIsLeaf(aTree);
 
     //check input
     if(typeof (aTree)=="string"){
@@ -293,7 +293,7 @@ function recFunc(aTree, parentArr, result, child){
     }else{
         if(aTree.child(0)!=null){
             if(aTree.child(0).toString().substring(0,1)!="<"){
-               isLeaf= true;
+              // isLeaf= true;
             }
         }
     }
@@ -324,7 +324,7 @@ function recFunc(aTree, parentArr, result, child){
 
     //add this name to parent(include itself)
 
-    parent.push(rootName);
+    parent.push(ele);
 
 
     // number of child
@@ -347,7 +347,19 @@ function recFunc(aTree, parentArr, result, child){
             }
         }
 
-        parent.unshift("isNode");
+        var tempNode = {}
+        tempNode["Tree"] = "";
+        tempNode["Root"] = "";
+        tempNode["RootName"] = "isNode";
+        tempNode["Attribute"] = "";
+        tempNode["Text"] = "";
+        tempNode["Path"] = "";
+        tempNode["Chilren"] = "";
+        tempNode["ChilrenNumber"] = ""
+        tempNode["Chilren[0]"] = "";
+        tempNode["isLeaf"] = "isNode";
+
+        parent.unshift(tempNode);
         res.unshift(parent);
 
     }else {
@@ -357,8 +369,22 @@ function recFunc(aTree, parentArr, result, child){
         console.log(child)
         console.log("--------------------Child--------------------")
         */
-        child.unshift(rootName);
-        parent.unshift("isLeaf");
+        child.unshift(ele);
+
+        var tempNode = {}
+        tempNode["Tree"] = "";
+        tempNode["Root"] = "";
+        tempNode["RootName"] = "isLeaf";
+        tempNode["Attribute"] = "";
+        tempNode["Text"] = "";
+        tempNode["Path"] = "";
+        tempNode["Chilren"] = "";
+        tempNode["ChilrenNumber"] = ""
+        tempNode["Chilren[0]"] = "";
+        tempNode["isLeaf"] = "isLeaf";
+
+
+        parent.unshift(tempNode);
         res.unshift(parent);
     }
 
@@ -387,28 +413,38 @@ function recFunc(aTree, parentArr, result, child){
 
 function checkExist(inputLeaf, outputStack){
     var res = -1;
+    //console.log("outputStack.length"+outputStack.length);
     for(var i = 0; i < outputStack.length; i ++){
 
-        console.log("------------------");
+        //console.log("------------------");
 
 
-        var table = outputStack[i];
-        var title = outputStack[i].title;
+        var table = outputStack[i].title;
+        var title  = [];
+
+        for(idx in table){
+            title.push(table[idx].RootName);
+        }
+
+        //console.log(title);
+        //var title = outputStack[i].title;
 
         if(title.length != inputLeaf.length){
             continue;
         }
 
+
         var sameMark = false;
+
         for(var j = 0; j < title.length; j ++){
             //console.log(title[j]);
             //console.log(inputLeaf[j]);
 
-            if(title[j]!=inputLeaf[j]){
+            if(title[j]!=inputLeaf[j].RootName){
                 break;
             }
 
-            if(j == title.length-1 && title[j]==inputLeaf[j]){
+            if(j == title.length-1 && title[j]==inputLeaf[j].RootName){
                 sameMark=true;
             }
         }
@@ -432,51 +468,54 @@ function combineBranch(treeStructure){
         var aData = treeStructure[i];
         if(i==treeStructure.length-1){
 
-            if(treeStructure[i-1][0]=="isLeaf" && treeStructure[i][0]=="isLeaf"){
+            if(treeStructure[i-1][0].RootName=="isLeaf" && treeStructure[i][0].RootName=="isLeaf"){
                 sameMark = false;
             }else{
                 sameMark = false;
             }
 
         }else{
-            if(treeStructure[i][0]=="isNode" && treeStructure[i+1][0]=="isLeaf"){
+            if(treeStructure[i][0].RootName=="isNode" && treeStructure[i+1][0].RootName=="isLeaf"){
                 sameMark = true;
             }
-            console.log("first  condition " + sameMark );
-            if(treeStructure[i][0]=="isLeaf" && treeStructure[i+1][0]=="isNode"){
+            //console.log("first  condition " + sameMark );
+            if(treeStructure[i][0].RootName=="isLeaf" && treeStructure[i+1][0].RootName=="isNode"){
                 sameMark = false;
             }
-            console.log("second condition " + sameMark );
+            //console.log("second condition " + sameMark );
         }
 
+        //console.log(sameMark);
 
         if( sameMark == true){
             temp.push(treeStructure[i][aData.length-1]);
             continue;
         }
-        console.log("option 1 " + temp.length );
+        //console.log("option 1 " + temp.length );
 
-        var tempData = aData.slice(0);;
+        var tempData = aData.slice(0,aData.length-1);
 
         if(sameMark == false && temp.length >0){
             temp.push(treeStructure[i][aData.length-1]);
 
-            for(var j = 0 ; j < temp.length-1; j++){
+            for(var j = 0 ; j < temp.length; j++){
                 tempData.push(temp[j]);
             }
 
             //clear temp
             temp.length = 0;
         }
-
+        //console.log(tempData);
 
         //console.log("treeStructure[i].isLeaf==true? " + treeStructure[i][0]);
-        if(treeStructure[i][0]=="isLeaf"){
+        if(treeStructure[i][0].RootName=="isLeaf"){
 
             //console.log(treeStructure[i]);
             //console.log(res);
             //console.log(checkExist(treeStructure[i],res));
             var index = checkExist(tempData,res);
+            //console.log(tempData);
+            //console.log(index);
             if(index==-1){
                 var ele = {};
                 ele["title"]=tempData;
@@ -484,19 +523,20 @@ function combineBranch(treeStructure){
                 ele["values"]=[];
                 ele["values"].push(tempData);
                 res.push(ele);
+                //console.log(ele.title);
             }else{
 
                 res[index].values.push(tempData);
-                console.log("test");
-                console.log(res[index].values);
+                res[index].count+=1;
+                //console.log("test");
+                //console.log(res[index].values);
             }
             //res.push(treeStructure[i]);
             //console.log(treeStructure[i]);
         }
     }
 
-    //console.log(res);
-
+    return res;
 }
 
 function treatXMLFile(xmlInput){
@@ -505,9 +545,15 @@ function treatXMLFile(xmlInput){
     //console.log(result);
     //var xml = libxmljs.parseXmlString(body);
     var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
+    console.log(xmlInput);
+    console.log(xml);
     treeStructure=recFunc(xml,[],[],[]);
     //console.log(treeStructure);
-    combineBranch(treeStructure);
+    var tables = combineBranch(treeStructure);
+
+    for(idx in tables){
+        //console.log(tables[idx].title)
+    }
 
 
     //console.log("json log");
