@@ -6,6 +6,7 @@ var traverse = require('traverse');
 var parser = require('xml2json');
 var formidable = require("formidable");
 var sync = require('synchronize');
+var libxmljs = require("libxmljs");
 function start(response) {
     console.log("Request handler 'start' was called.");
     var body = '<html>'+
@@ -75,23 +76,23 @@ function upload(response, request) {
 }
 function xmlload(response, request) {
     var xml = "<foo>bar</foo>";
-    console.log(xml);
+//console.log(xml);
     var json = parser.toJson(xml); //returns a string containing the JSON structure by default
-    console.log(json);
+//console.log(json);
     var form = new formidable.IncomingForm();
     console.log("about to parse");
     form.parse(request, function(error, fields, files) {
-         console.log("parsing done");
-        console.log(files);
-        console.log(files.upload);
-         console.log(files.upload.path);
-         fs.renameSync(files.upload.path, "/tmp/test.xml");
-         response.writeHead(200, {"Content-Type": "text/html"});
-         response.write("received data:<br/>");
-         response.write(json);
-         //response.write("<img src='/show' />");
-         //response.write("<lable>test</lable>")
-         response.end();
+        console.log("parsing done");
+//console.log(files);
+//console.log(files.upload);
+//console.log(files.upload.path);
+        fs.renameSync(files.upload.path, "/tmp/test.xml");
+        response.writeHead(200, {"Content-Type": "text/html"});
+        response.write("received data:<br/>");
+        response.write(json);
+        //response.write("<img src='/show' />");
+        //response.write("<lable>test</lable>")
+        response.end();
     });
 }
 function readFiles(dirname, onFileContent, onError){
@@ -126,7 +127,7 @@ function show(response) {
                 if (this.isLeaf) acc.push(x);
                 return acc;
             }, []);
-            console.dir(leaves);
+//console.dir(leaves);
             response.write(json);
             response.end();
         }
@@ -222,7 +223,7 @@ function showtraverse(response) {
                 return acc;
             }, []);
             //console.dir(leaves);
-            console.log(typeof (leaves));
+//console.log(typeof (leaves));
             var res = JSON.stringify(leaves);
             response.write(json);
             response.end();
@@ -256,10 +257,392 @@ function addAllColumnHeaders(myList, selector){
     $(selector).append(headerTr$);
     return columnSet;
 }
+
+function checkIsLeaf(aTree){
+    var isLeaf = false;
+    if(typeof (aTree)=="string"){
+
+    }else{
+        if(aTree.child(0)!=null){
+            if(aTree.child(0).toString().substring(0,1)!="<"){
+                isLeaf= true;
+            }
+        }
+    }
+
+    return isLeaf;
+}
+
+//put in a tree.
+//give out an array.
+function recFunc(aTree, parentArr, result, child){
+    //console.log(aTree);
+    //parent
+    var parent = [];
+    parent=parentArr.slice(0);
+
+    //global result
+    var res = result;
+
+    //go deep mark
+    var isLeaf = checkIsLeaf(aTree);
+
+    //check input
+    if(typeof (aTree)=="string"){
+
+    }else{
+        if(aTree.child(0)!=null){
+            if(aTree.child(0).toString().substring(0,1)!="<"){
+                // isLeaf= true;
+            }
+        }
+    }
+    //aTree.toString()
+    //console.log(typeof(aTree.toString()));
+    //xml
+    var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
+
+    //root
+    var contactElement = xml.root();
+    //console.log(contactElement);
+
+    //root name
+    var rootName=contactElement.name();
+
+
+    //var ele
+    var ele = {}
+    ele["Tree"] = aTree;
+    ele["Root"] = contactElement;
+    ele["RootName"] = rootName;
+    ele["Attribute"] = contactElement.attrs();
+    ele["Text"] = contactElement.text();
+    ele["Path"] = contactElement.path();
+    ele["Chilren"] = contactElement.childNodes();
+    ele["ChilrenNumber"] = contactElement.childNodes().length;
+    ele["Chilren[0]"] = contactElement.childNodes()[0];
+    ele["isLeaf"] = checkIsLeaf(aTree);
+
+
+    //add this name to parent(include itself)
+
+    parent.push(ele);
+
+
+    // number of child
+    var children = xml.root().childNodes();
+    var childrenNumber = children.length;
+
+    var endRowMark = false;
+
+    //each child call recFunc again
+    if(isLeaf==false){
+
+        for(var i = children.length-1 ; i>-1 ; i--){
+
+            recFunc(children[i],parent,res,child);
+
+            if(i==0){
+                //last element
+                endRowMark = true;
+
+            }
+        }
+
+        var tempNode = {}
+        tempNode["Tree"] = "";
+        tempNode["Root"] = "";
+        tempNode["RootName"] = "isNode";
+        tempNode["Attribute"] = "";
+        tempNode["Text"] = "";
+        tempNode["Path"] = "";
+        tempNode["Chilren"] = "";
+        tempNode["ChilrenNumber"] = ""
+        tempNode["Chilren[0]"] = "";
+        tempNode["isLeaf"] = "isNode";
+
+        parent.unshift(tempNode);
+        res.unshift(parent);
+
+    }else {
+
+        /*
+         console.log("--------------------Child--------------------")
+         console.log(child)
+         console.log("--------------------Child--------------------")
+         */
+        child.unshift(ele);
+
+        var tempNode = {}
+        tempNode["Tree"] = "";
+        tempNode["Root"] = "";
+        tempNode["RootName"] = "isLeaf";
+        tempNode["Attribute"] = "";
+        tempNode["Text"] = "";
+        tempNode["Path"] = "";
+        tempNode["Chilren"] = "";
+        tempNode["ChilrenNumber"] = ""
+        tempNode["Chilren[0]"] = "";
+        tempNode["isLeaf"] = "isLeaf";
+
+
+        parent.unshift(tempNode);
+        res.unshift(parent);
+    }
+
+
+    //combine rows
+    if(endRowMark == true){
+
+        for(var i = 0; i < child.length ; i ++){
+            //parent.push(child[i]);
+        }
+
+        //parent.unshift("isNode");
+
+        //res.unshift(parent);
+
+        child.length = 0;
+    }
+
+    //console.log(isLeaf);
+    //if find an leaf , return this root- node -leaf back
+    if(isLeaf==true || endRowMark == true){
+        //console.log("parent after " + parent);
+        return res;
+    }
+}
+
+function checkExist(inputLeaf, outputStack){
+    var res = -1;
+    //console.log("outputStack.length"+outputStack.length);
+    for(var i = 0; i < outputStack.length; i ++){
+
+        //console.log("------------------");
+
+
+        var table = outputStack[i].title;
+        var title  = [];
+
+        for(idx in table){
+            title.push(table[idx].RootName);
+        }
+
+        //console.log(title);
+        //var title = outputStack[i].title;
+
+        if(title.length != inputLeaf.length){
+            continue;
+        }
+
+
+        var sameMark = false;
+
+        for(var j = 0; j < title.length; j ++){
+            //console.log(title[j]);
+            //console.log(inputLeaf[j]);
+
+            if(title[j]!=inputLeaf[j].RootName){
+                break;
+            }
+
+            if(j == title.length-1 && title[j]==inputLeaf[j].RootName){
+                sameMark=true;
+            }
+        }
+
+        if(sameMark==true){
+            return i;
+        }
+
+    }
+    return -1;
+}
+
+function combineBranch(treeStructure){
+    var res = [];
+    var shouldCombine = false;
+    var sameMark = false;
+    //to hold the leaf with same parent
+    var temp = [];
+    for(var i = 0; i < treeStructure.length; i++){
+
+        var aData = treeStructure[i];
+        if(i==treeStructure.length-1){
+
+            if(treeStructure[i-1][0].RootName=="isLeaf" && treeStructure[i][0].RootName=="isLeaf"){
+                sameMark = false;
+            }else{
+                sameMark = false;
+            }
+
+        }else{
+            if(treeStructure[i][0].RootName=="isNode" && treeStructure[i+1][0].RootName=="isLeaf"){
+                sameMark = true;
+            }
+            //console.log("first  condition " + sameMark );
+            if(treeStructure[i][0].RootName=="isLeaf" && treeStructure[i+1][0].RootName=="isNode"){
+                sameMark = false;
+            }
+            //console.log("second condition " + sameMark );
+        }
+
+        //console.log(sameMark);
+
+        if( sameMark == true){
+            temp.push(treeStructure[i][aData.length-1]);
+            continue;
+        }
+        //console.log("option 1 " + temp.length );
+
+        var tempData = aData.slice(0,aData.length-1);
+
+        if(sameMark == false && temp.length >0){
+            temp.push(treeStructure[i][aData.length-1]);
+
+            for(var j = 0 ; j < temp.length; j++){
+                tempData.push(temp[j]);
+            }
+
+            //clear temp
+            temp.length = 0;
+        }
+        //console.log(tempData);
+
+        //console.log("treeStructure[i].isLeaf==true? " + treeStructure[i][0]);
+        if(treeStructure[i][0].RootName=="isLeaf"){
+
+            //console.log(treeStructure[i]);
+            //console.log(res);
+            //console.log(checkExist(treeStructure[i],res));
+            var index = checkExist(tempData,res);
+            //console.log(tempData);
+            //console.log(index);
+            if(index==-1){
+                var ele = {};
+                ele["title"]=tempData;
+                ele["count"]=0;
+                ele["values"]=[];
+                ele["values"].push(tempData);
+                res.push(ele);
+                //console.log(ele.title);
+            }else{
+
+                res[index].values.push(tempData);
+                res[index].count+=1;
+                //console.log("test");
+                //console.log(res[index].values);
+            }
+            //res.push(treeStructure[i]);
+            //console.log(treeStructure[i]);
+        }
+    }
+
+    return res;
+}
+
+function treatXMLFile(xmlInput){
+    var treeStructure = [];
+
+
+
+    var xmltest =  '<?xml version="1.0" encoding="UTF-8"?>' +
+        '<root>' +
+        '<child foo="bar">' +
+        '<grandchild baz="fizbuzz">grandchild content</grandchild>' +
+        '</child>' +
+        '<sibling>with content!</sibling>' +
+        '</root>';
+
+    var xml = libxmljs.parseXml(xmltest);
+
+
+    //console.log(typeof(xmlDoc));
+    //console.log(xmlDoc.name);
+
+
+
+    //result=recFunc(xmlInput,[],[]);
+    //console.log(result);
+    //var xml = libxmljs.parseXmlString(body);
+    console.log(typeof (xmlInput));
+    //var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
+
+
+
+    //var test  = '<?xml version="1.0"?><catalog> <book id="bk101">  <author>Gambardella, Matthew</author>  <title>XML Developer\'s Guide</title>  <genre>Computer</genre>  <price>44.95</price>  <publish_date>2000-10-01</publish_date>  <description>An in-depth look at creating applications   with XML.</description> </book> <book id="bk102">  <author>Ralls, Kim</author>  <title>Midnight Rain</title>  <genre>Fantasy</genre>  <price>5.95</price>  <publish_date>2000-12-16</publish_date>  <description>A former architect battles corporate zombies,   an evil sorceress, and her own childhood to become queen   of the world.</description> </book> <book id="bk103">  <author>Corets, Eva</author>  <title>Maeve Ascendant</title>  <genre>Fantasy</genre>  <price>5.95</price>  <publish_date>2000-11-17</publish_date>  <description>After the collapse of a nanotechnology   society in England, the young survivors lay the   foundation for a new society.</description> </book> <book id="bk104">  <author>Corets, Eva</author>  <title>Oberon\'s Legacy</title>  <genre>Fantasy</genre>  <price>5.95</price>  <publish_date>2001-03-10</publish_date>  <description>In post-apocalypse England, the mysterious   agent known only as Oberon helps to create a new life   for the inhabitants of London. Sequel to Maeve   Ascendant.</description> </book> <book id="bk105">  <author>Corets, Eva</author>  <title>The Sundered Grail</title>  <genre>Fantasy</genre>  <price>5.95</price>  <publish_date>2001-09-10</publish_date>  <description>The two daughters of Maeve, half-sisters,   battle one another for control of England. Sequel to   Oberon\'s Legacy.</description> </book> <book id="bk106">  <author>Randall, Cynthia</author>  <title>Lover Birds</title>  <genre>Romance</genre>  <price>4.95</price>  <publish_date>2000-09-02</publish_date>  <description>When Carla meets Paul at an ornithology   conference, tempers fly as feathers get ruffled.</description> </book> <book id="bk107">  <author>Thurman, Paula</author>  <title>Splish Splash</title>  <genre>Romance</genre>  <price>4.95</price>  <publish_date>2000-11-02</publish_date>  <description>A deep sea diver finds true love twenty   thousand leagues beneath the sea.</description> </book> <book id="bk108">  <author>Knorr, Stefan</author>  <title>Creepy Crawlies</title>  <genre>Horror</genre>  <price>4.95</price>  <publish_date>2000-12-06</publish_date>  <description>An anthology of horror stories about roaches,  centipedes, scorpions  and other insects.</description> </book> <book id="bk109">  <author>Kress, Peter</author>  <title>Paradox Lost</title>  <genre>Science Fiction</genre>  <price>6.95</price>  <publish_date>2000-11-02</publish_date>  <description>After an inadvertant trip through a Heisenberg  Uncertainty Device, James Salway discovers the problems   of being quantum.</description> </book> <book id="bk110">  <author>O\'Brien, Tim</author>  <title>Microsoft .NET: The Programming Bible</title>  <genre>Computer</genre>  <price>36.95</price>  <publish_date>2000-12-09</publish_date>  <description>Microsoft\'s .NET initiative is explored in   detail in this deep programmer\'s reference.</description> </book> <book id="bk111">  <author>O\'Brien, Tim</author>  <title>MSXML3: A Comprehensive Guide</title>  <genre>Computer</genre>  <price>36.95</price>  <publish_date>2000-12-01</publish_date>  <description>The Microsoft MSXML3 parser is covered in   detail, with attention to XML DOM interfaces, XSLT processing,   SAX and more.</description> </book> <book id="bk112">  <author>Galos, Mike</author>  <title>Visual Studio 7: A Comprehensive Guide</title>  <genre>Computer</genre>  <price>49.95</price>  <publish_date>2001-04-16</publish_date>  <description>Microsoft Visual Studio 7 is explored in depth,  looking at how Visual Basic, Visual C++, C#, and ASP+ are   integrated into a comprehensive development   environment.</description> </book></catalog>'
+    //console.log(libxmljs.parseXmlString(test));
+    //var test = xmlInput;
+    //console.log(libxmljs.parseXmlString(test));
+    console.log(xml);
+    console.log(typeof (xml));
+    //treeStructure=recFunc(xml,[],[],[]);
+    //console.log(treeStructure);
+    //var tables = combineBranch(treeStructure);
+
+    //for(idx in tables){
+    //console.log(tables[idx].title)
+    //}
+
+
+    //console.log("json log");
+    //----------------------------------------------
+    //console.log("xml "+xml)
+    //var gchild = xml.get('//book');
+    //console.log("book "+gchild);
+    //console.log("author "+xml.get('//author'))
+
+    var contactElement = xml.root();
+    var idElement = contactElement.childNodes()[1];
+    var id = idElement.childNodes()[1];
+    var lastNameElement = contactElement.childNodes()[contactElement.childNodes().length-2];
+    var lastName = lastNameElement.childNodes()[1];
+    var firstNameElement = contactElement.childNodes()[2];
+    var firstName1 = firstNameElement.childNodes()[0];
+    var children = xml.root().childNodes();
+    var child = children[0];
+
+    console.log("contactElement "+contactElement);
+    //console.log("idElement "+idElement);
+    //console.log("id "+id);
+    //console.log("lastNameElement "+lastNameElement);
+    //console.log("lastName "+lastName);
+    //console.log("firstNameElement "+firstNameElement);
+    //console.log("firstName1 "+firstName1);
+    //console.log("children "+children);
+    //console.log("children length"+children.length);
+    //console.log("child "+child);
+    for(var i = 0 ; i < children.length; i ++){
+        //console.log("children["+i+"] "+children[i]);
+    }
+
+    var xml2 = libxmljs.parseXmlString(children[1]);
+    var contactElement = xml2.root();
+
+    var idElement = contactElement.childNodes()[0];
+    //console.log("contactElement "+contactElement);
+    //console.log("idElement "+idElement);
+    //console.log("childNodes().length "+contactElement.childNodes().length);
+
+    for(var i = 0 ; i < contactElement.childNodes().length; i ++){
+        //console.log("sub child "+contactElement.child(i));
+        //console.log(contactElement.childNodes()[i].name());
+        //console.log(contactElement.childNodes()[i].text());
+        //console.log(contactElement.childNodes()[i].attrs());
+        //console.log(contactElement.childNodes()[i].path());
+
+    }
+
+    //----------------------------------------------
+
+}
 function treatJson( json ){
-    console.log("transform from JOSN to HTML:start");
+    //console.log("transform from JOSN to HTML:start");
     //var temp = json.indexOf("{");
-    var str = json;
+
+    var patten = "$t";
+    var str = json.replace("$t","description")
+    //var str = json;
     var indices = [];
     for(var i=0; i<str.length;i++) {
         if (str[i] === "{") indices.push([i,"{"]);
@@ -339,39 +722,39 @@ function treatJson( json ){
             //temp13[i]=buildIndentation(indentation)+indentation+temp11[i]+"<br/>";
         }
     }
-    console.log("transform log");
-    console.log(temp13);
-    console.log("transform log");
+//console.log("transform log");
+//console.log(temp13);
+//console.log("transform log");
     var datas = [];
     var dataflag = false;
     for(var i=0; i<temp13.length;i++) {
         if(temp13[i].line.indexOf("[")>-1){
             if(dataflag == false){
                 data.push(temp13[i]);
-                console.log("################################a new block#################################################################");
-                console.log("first line#########"+ temp13[i].line + " at line " + i);
+//console.log("################################a new block#################################################################");
+//console.log("first line#########"+ temp13[i].line + " at line " + i);
             } else{
-                console.log("################################delete a block#################################################################");
-                console.log("because of" + temp13[i].line + " at line " + i);
+//console.log("################################delete a block#################################################################");
+//console.log("because of" + temp13[i].line + " at line " + i);
                 for (var idx in data){
                     prefix.push(data[idx]);
                     //console.log("data to prefix#########");
                 }
                 data.length = 0;
                 data.push(temp13[i]);
-                console.log("first line after delete#########"+ temp13[i].line + " at line " + i);
+//console.log("first line after delete#########"+ temp13[i].line + " at line " + i);
             }
             dataflag = true;
         } else if ((temp13[i].line.indexOf("]")>-1) && (dataflag == true)){
             data.push(temp13[i]);
             dataflag = false;
-            console.log("################################end of a block#################################################################");
-            console.log("because of" + temp13[i].line + " at line " + i);
+//console.log("################################end of a block#################################################################");
+//console.log("because of" + temp13[i].line + " at line " + i);
             //remove duplicate
             var cleanedPrefix = cleanPrefix(prefix);
-            console.log("-------------cleanedPrefix start-----------");
-            console.log(cleanedPrefix);
-            console.log("-------------cleanedPrefix end-------------");
+//console.log("-------------cleanedPrefix start-----------");
+//console.log(cleanedPrefix);
+//console.log("-------------cleanedPrefix end-------------");
             //if this prefix is already exist ,return index
             //var index = checkPrefix(datas, cleanedPrefix);
 
@@ -379,15 +762,18 @@ function treatJson( json ){
             var simpledataFlag = false;
             if(checkSimpleData(data)){
                 simpledataFlag=true;
-                console.log("this is a simple data");
+//console.log("this is a simple data");
             }
             index = findSameTitle(datas, cleanedPrefix, data, simpledataFlag);
-            console.log("-------------index is "+index+"-------------");
+            //console.log("datas "+datas.length);
+            //console.log("same title at "+index);
+//console.log("-------------index is "+index+"-------------");
             //prefix is same ,
             if(index>=0){
                 //check data title , return data title length
                 //var dataLength = checkData(datas[index],cleanedPrefix, data);
                 //prefix exist, and data title is same , add to exist
+                //console.log("add data to index "+index)
                 var dataBlock = addDataToExist(cleanedPrefix, datas[index], data, simpledataFlag);
                 var ele = {};
                 ele["prefix"] =dataBlock[0];
@@ -395,28 +781,28 @@ function treatJson( json ){
                 if(simpledataFlag==true){
                     ele["simple"]=true;
                 }
-                console.log("update data " + index);
+//console.log("update data " + index);
                 datas[index] = ele;
                 /*
-                //data title is same
-                if (dataLength>0) {
-                    //prefix exist, and data title is same , add to exist
-                    var dataBlock = addDataToExist(cleanedPrefix, datas[index], data);
-                    var ele = {};
-                    ele["prefix"] =dataBlock[0];
-                    ele["datablock"]=dataBlock;
-                    console.log("update data " + index);
-                    datas[index] = ele;
-                }else{
-                    //prefix exist, but data title is different, make new block
-                    var dataBlock = treatData(cleanedPrefix, data);
-                    var ele = {};
-                    ele["prefix"] =dataBlock[0];
-                    ele["datablock"]=dataBlock;
-                    console.log("add a new data to datas with number"+ datas.length);
-                    datas.push(ele);
-                }
-                */
+                 //data title is same
+                 if (dataLength>0) {
+                 //prefix exist, and data title is same , add to exist
+                 var dataBlock = addDataToExist(cleanedPrefix, datas[index], data);
+                 var ele = {};
+                 ele["prefix"] =dataBlock[0];
+                 ele["datablock"]=dataBlock;
+                 console.log("update data " + index);
+                 datas[index] = ele;
+                 }else{
+                 //prefix exist, but data title is different, make new block
+                 var dataBlock = treatData(cleanedPrefix, data);
+                 var ele = {};
+                 ele["prefix"] =dataBlock[0];
+                 ele["datablock"]=dataBlock;
+                 console.log("add a new data to datas with number"+ datas.length);
+                 datas.push(ele);
+                 }
+                 */
             }
             //prefix is different
             else {
@@ -431,37 +817,191 @@ function treatJson( json ){
                     ele["simple"]=false;
                 }
 
-                console.log("-------------dataBlock start-----------");
-                console.log(dataBlock);
-                console.log("-------------dataBlock end-------------");
+//console.log("-------------dataBlock start-----------");
+//console.log(dataBlock);
+//console.log("-------------dataBlock end-------------");
 
-                console.log("add a new data to datas with number"+ datas.length);
+//console.log("add a new data to datas with number"+ datas.length);
                 datas.push(ele);
             }
             data.length = 0;
         } else if ( dataflag == true ){
-            console.log("line " + i +"add to data");
+//console.log("line " + i +"add to data");
             data.push(temp13[i]);
         } else if (dataflag == false){
-            console.log("line " + i +"add to prefix");
+//console.log("line " + i +"add to prefix");
             prefix.push(temp13[i]);
         }
     }
     var res = [];
     for(var i = 0; i< datas.length ; i++){
         res.push(datas[i].datablock);
+
     }
 
     var result = cleanResult(res);
+    var mergedResult = mergeFinal(result);
+    return mergedResult;
+}
+
+function reduceColumn(column, outputColumnNumber){
+    var res = [];
+    for (var i = 0; i < outputColumnNumber.length; i++){
+        res.push(column[outputColumnNumber[i]]);
+    }
+
+    return res;
+}
+
+
+function checkTitle(title1, title2){
+
+    var mark = false;
+
+    if(title1.length==title2.length){
+
+        for(index in title1){
+            if( title1[index].att==title2[index].att){
+                mark=true;
+                continue;
+
+            }else{
+                mark=false;
+                break;
+            }
+        }
+    }
+    return mark;
+}
+
+function mergeFinal(tables){
+    //console.log("mergeFinal start");
+
+    if(tables.length == 1){
+        return tables;
+    }
+
+    var res = [];
+    var mergedTable=[];
+    var mergeToTable=[];
+
+    //step 1
+    //delete useless column(output==false)
+    for (var i = 0; i < tables.length; i++){
+        var outputColumnNumber=[];
+        var outputColumns=[];
+        var title = tables[i][0];
+
+        if(title.length == 0){
+            continue;
+        }
+
+        //get out useful column , put into outputColumnNumber array
+        for(var index=0; index < title.length; index++){
+            if(title[index].output){
+                outputColumnNumber.push(index);
+            }
+        }
+        for(index in tables[i]){
+
+            outputColumns.push(reduceColumn(tables[i][index],outputColumnNumber));
+        }
+
+        res.push(outputColumns);
+    }
+
+
+    //step2
+    //merge same title tables
+    for (var i = 0; i < res.length; i++){
+        if(mergedTable.length>0 && mergedTable.indexOf(i)>-1){
+            //console.log("merged before");
+            continue;
+        }
+        var title = res[i][0];
+
+        if(title.length == 0){
+            continue;
+        }
+
+        for (var j = i+1; j < res.length; j++){
+            //this table merged by privious
+            if(mergedTable.length>0 && mergedTable.indexOf(j)>-1){
+                //console.log("merged before");
+                continue;
+            }
+
+            //merge
+            var anotherTitle = res[j][0];
+
+            if(anotherTitle.length == 0){
+                continue;
+            }
+
+            var mergeMark=checkTitle(title,anotherTitle);
+
+            //check title, if same, set merge mark = true
+            if(mergeMark==false){
+                continue;
+            }else{
+                //j is merged
+                mergedTable.push(j);
+                //j to i
+                mergeToTable.push([j,i])
+            }
+
+            //if merge mark = true, then merge
+            if(mergeMark==true){
+                for (var index = 1 ; index < res[j].length; index++ ){
+                    //build row
+                    var tempRow = res[i].slice(0);
+                    tempRow.push(res[j][index]);
+                    res[i]=tempRow;
+                }
+
+                //console.log("merge them");
+            }else{
+                continue;
+            }
+        }
+        //var title = treatJS[i][0]
+
+        //console.log(title);
+
+
+    }
+
+//    console.log("mergedTable"+mergedTable);
+//    console.log("mergeToTable"+mergeToTable);
+
+    //get out non-empty tables
+    var result=[];
+
+    for(var i = 0; i < res.length; i ++){
+        if(mergedTable.indexOf(i)==-1){
+            result.push(res[i]);
+        }
+    }
+
+//    console.log("mergeFinal end");
     return result;
 }
+
+
 function cleanResult(res){
     var resCopy = res.slice(0);
     var uselessArray = [];
     uselessArray.push(": {");
     uselessArray.push(":[");
     uselessArray.push("-");
-    for(idx in res){
+    uselessArray.push(" ");
+    uselessArray.push("");
+    uselessArray.push("{");
+    uselessArray.push(" {");
+    uselessArray.push("[");
+    uselessArray.push(" [");
+    for(var idx=0; idx<res.length; idx++){
+        //console.log("happend at "+ idx);
         var data = res[idx];
         var titleLine = data[0].slice(0);
         var associativeArray = {};
@@ -474,22 +1014,43 @@ function cleanResult(res){
             }
 
             if(Object.keys(associativeArray).indexOf(titleLine[i].att)>-1)　{
-                titleLine[i].val = titleLine[i].att +　associativeArray[titleLine[i].att];
+                if(associativeArray[titleLine[i].att]>1){
+                    titleLine[i].val = titleLine[i].att +　associativeArray[titleLine[i].att];
+                }
+
             }
         }
 
+        //console.log("data[0].length" + data[0].length);
+        //console.log("data.length" + data.length);
+
+        for(var i = 0; i < data.length ; i++){
+            //console.log("data["+i+"].length" + data[i].length);
+        }
+
+        //i is column
         for(var i = 0; i < data[0].length ; i++){
+            //j is row
             for(var j = 1; j < data.length ; j++){
-                console.log("data[j][i].val="+data[j][i].val);
-                console.log("uselessArray.indexOf(data[j][i].val)="+uselessArray.indexOf(data[j][i].val));
-                if(uselessArray.indexOf(data[j][i].val)==-1){
-                    titleLine[i]["output"]=true;
-                    break;
-                }else {
-                    titleLine[i]["output"]=false;
+
+                //console.log("data["+j+"]["+i+"]="+data[j][i]);
+                //console.log("data["+j+"]["+i+"].att="+data[j][i].att);
+                //console.log("data["+j+"]["+i+"].val="+data[j][i].val);
+                //console.log("uselessArray.indexOf(data["+j+"]["+i+"].val)="+uselessArray.indexOf(data[j][i].val));
+                if((uselessArray.indexOf(data[j][i]))!=undefined){
+                    if(uselessArray.indexOf(data[j][i].val)!=undefined){
+                        if(uselessArray.indexOf(data[j][i].val)==-1){
+                            titleLine[i]["output"]=true;
+                            break;
+                        }else {
+                            titleLine[i]["output"]=false;
+                        }
+                    }
                 }
+
+
             }
-            console.log("log is"+titleLine[i]["output"]);
+//console.log("log is"+titleLine[i]["output"]);
         }
         resCopy[idx][0]=titleLine;
     }
@@ -509,65 +1070,122 @@ function buildIndentation(index){
 }
 
 function addNewPage(response,request, postdata){
-    console.log("postData is " +postdata);
-    console.log(typeof(postdata));
-    console.log("addNewPage");
+//console.log("postData is " +postdata);
+//console.log(typeof(postdata));
+//console.log("addNewPage");
     response.write(postdata);
     response.end;
 }
+
+
+//this function is mainly work on the data(detect by other function)
+//if the datas are regular (same format or same construction)
+//if the data is single (without a brother leaf)
+//if the data is irregular(different from each other)
 function treatData(prefix,data ,simpledataFlag){
-    console.log("build datablock:start");
-    console.log("entered prefix");
-    console.log(prefix);
-    console.log("entered prefix");
-    console.log("entered data");
-    console.log(data);
-    console.log("entered data");
+//console.log("build datablock:start");
+//console.log("entered prefix");
+//console.log(prefix);
+//console.log("entered prefix");
+//console.log("entered data");
+//console.log(data);
+//console.log("entered data");
     var title = []
     var rows = [];
     var rowPrefix = prefix.slice(0);
     var dataStack = [];
+
+
+    //copy prefix
     for(idx in prefix){
         var ele = {};
         ele={};
         ele["indentation"] = prefix[idx].indentation;
-        ele["att"]= prefix[idx].att;
-        ele["val"]= prefix[idx].att;
+        ele["att"]= cleanValue(prefix[idx].att);
+        ele["val"]= cleanValue(prefix[idx].att);
         title.push(ele);
     }
+
     var count = 0;
     var pieceOfDataFlag = 0;
     var rowItemCount = 0;
     var inRowFlag = false;
     var tempTitle = [];
+
+    //data is not a simple data
     if(simpledataFlag==false){
-        for(var i = 0 ; i < data.length; i++){
+
+        //this loop determains title
+        for(var i = 0 ; i < data.length; i++) {
+
+            //for some data has attribute
             var splitPoint = data[i].line.indexOf(":");
+
+            //detect a start
+            if (data[i].line.indexOf("{") > -1) {
+                if (pieceOfDataFlag == 0) {
+//console.log("start of a piece of data");
+                    dataStack.length = 0;
+                    count++;
+                }
+                pieceOfDataFlag++;
+                inRowFlag = true;
+            }
+
+            //detect an end
+            if (data[i].line.indexOf("}") > -1) {
+                pieceOfDataFlag--;
+                inRowFlag = false;
+            }
+
+            //split attribute
+            if (splitPoint > -1) {
+                var att = data[i].line.substring(0, splitPoint);
+                var val = data[i].line.substring(splitPoint + 1);
+                if (count == 1) {
+                    ele = {};
+                    ele["indentation"] = "";
+                    ele["att"] = cleanValue(att);
+                    ele["val"] = cleanValue(att);
+//console.log("add an element to title: "+ att);
+                    title.push(ele);
+                    tempTitle.push(ele);
+                }
+                else if(count>1){
+                    break;
+                }
+            }
+        }
+
+        pieceOfDataFlag=0;
+
+        //this loop determains data
+        for(var i = 0 ; i < data.length; i++){
+
+            //for some data has attribute
+            var splitPoint = data[i].line.indexOf(":");
+
+            //detect a start
             if(data[i].line.indexOf("{")>-1){
                 if(pieceOfDataFlag==0){
-                    console.log("start of a piece of data");
+//console.log("start of a piece of data");
                     dataStack.length = 0;
                     count++;
                 }
                 pieceOfDataFlag++;
                 inRowFlag=true;
             }
+
+            //detect an end
             if(data[i].line.indexOf("}")>-1){
                 pieceOfDataFlag--;
                 inRowFlag=false;
             }
-            if (splitPoint>-1){
-                var att = data[i].line.substring(0,splitPoint);
-                var val = data[i].line.substring(splitPoint+1);
-                if(count==1){
-                    ele={};
-                    ele["indentation"] ="";
-                    ele["att"]=att;
-                    ele["val"]=att;
-                    console.log("add an element to title: "+ att);
-                    title.push(ele);
-                    tempTitle.push(ele);
-                }
+            //split attribute
+            if (splitPoint > -1) {
+                var att = data[i].line.substring(0, splitPoint);
+                var val = data[i].line.substring(splitPoint + 1);
+
                 var temp = val;
                 //delete useless comma
                 if(temp.substring(val.length-1)==","){
@@ -577,63 +1195,111 @@ function treatData(prefix,data ,simpledataFlag){
                 if(temp.substring(val.length-1)=="{"){
                     temp = "-";
                 }
+
+                //not first row
                 if(rows.length >1){
-                    //normal branch,
-                    if(tempTitle.length>rowItemCount){
-                        if(tempTitle[rowItemCount].att==att){
-                            //usual case, all same
-                            //add an element
-                            ele={};
-                            ele["indentation"] = data[i].indentation;
-                            ele["att"]=att;
-                            ele["val"]=temp;
-                            dataStack.push(ele);
-                        }else{
-                            //unusual case, row item is different from title at[rowItemCount]
-                            //temproary :omit this item, keep title
-                            rowItemCount--;
-                        }
-                    }else{
-                        //this branch means, rows has more column than title
-                    }
-                }else{
+                    /*
+                     //normal branch,
+                     if(tempTitle.length>rowItemCount){
+                     if(tempTitle[rowItemCount].att==att){
+                     //usual case, all same
+                     //add an element
+                     ele={};
+                     ele["indentation"] = data[i].indentation;
+                     ele["att"]=cleanValue(att);
+                     ele["val"]=cleanValue(temp);
+                     dataStack.push(ele);
+                     }else{
+                     //unusual case, row item is different from title at[rowItemCount]
+                     //temproary :omit this item, keep title
+                     ele={};
+                     ele["indentation"] = tempTitle[rowItemCount].indentation;
+                     ele["att"]=tempTitle[rowItemCount].att;
+                     ele["val"]="-";
+
+                     rowItemCount--;
+                     }
+                     }else{
+                     //this branch means, rows has more column than title
+                     }
+                     */
+
                     ele={};
                     ele["indentation"] = data[i].indentation;
-                    ele["att"]=att;
-                    ele["val"]=temp;
+                    ele["att"]=cleanValue(att);
+                    ele["val"]=cleanValue(temp);
+                    dataStack.push(ele);
+
+                }
+
+                //very first row, always same as title
+                else{
+                    ele={};
+                    ele["indentation"] = data[i].indentation;
+                    ele["att"]=cleanValue(att);
+                    ele["val"]=cleanValue(temp);
                     dataStack.push(ele);
                 }
                 rowItemCount++;
+
+                //the new build row, has length smaller than the last row in [rows]-[prefix]
                 if(rows.length>1 && rowItemCount<=(rows[rows.length-1].length-prefix.length)){
+                    //the last row in [rows],the element of index of [new build last] not equal to new build row's last
                     if(rows[rows.length-1][prefix.length+rowItemCount-1].att!=att){
-                        console.log("not same");
-                        console.log(rows[rows.length-1][prefix.length+rowItemCount-1]);
-                        console.log(att);
+//console.log("not same");
+//console.log(rows[rows.length-1][prefix.length+rowItemCount-1]);
+//console.log(att);
                     }else{
-                        console.log("same");
-                        console.log(rows[rows.length-1][prefix.length+rowItemCount-1]);
-                        console.log(att);
+//console.log("same");
+//console.log(rows[rows.length-1][prefix.length+rowItemCount-1]);
+//console.log(att);
                     }
                 }else{
-                    rowItemCount--;
+                    //rowItemCount--;
                 }
             }
+
+            //piece of data finish, attach to rows
+            //console.log("pieceOfDataFlag = "+pieceOfDataFlag);
             if(data[i].line.indexOf("}")>-1 && (pieceOfDataFlag==0)){
-                console.log("end of a piece of data")
-                var temp = prefix.slice(0);
-                console.log("sepecial treat");
-                console.log(prefix);
-                console.log("sepecial treat");
-                for (idx in dataStack){
-                    temp.push(dataStack[idx]);
+//console.log("end of a piece of data")
+                //var temp = prefix.slice(0);
+
+                var temp = [];
+                //copy prefix
+                for(idx in prefix){
+                    var ele = {};
+                    ele={};
+                    ele["indentation"] = prefix[idx].indentation;
+                    ele["att"]= cleanValue(prefix[idx].att);
+                    ele["val"]= cleanValue(prefix[idx].val);
+                    temp.push(ele);
+                }
+//console.log("sepecial treat");
+//console.log(prefix);
+//console.log("sepecial treat");
+                //console.log(tempTitle);
+                //console.log(dataStack);
+                var tempData = adaptDataToTitle(tempTitle,dataStack);
+                //console.log(tempData);
+
+                for (idx in tempData){
+                    temp.push(tempData[idx]);
                 }
                 var row = temp;
                 rowItemCount=0;
+                //console.log("row-----"+row.length);
                 rows.push(row);
             }
         }
+
+        //attach title to the first row
+        //console.log("title-----"+title.length);
+
         rows.unshift(title);
-    }else{
+    }
+    //this is for simple/single data
+    else{
         for(var i = 0 ; i < data.length; i++){
             var splitPoint = data[i].line.indexOf(":");
             if(splitPoint>-1){
@@ -646,14 +1312,90 @@ function treatData(prefix,data ,simpledataFlag){
             }
             ele={};
             ele["indentation"] ="";
-            ele["att"]=att;
-            ele["val"]=val;
+
+            ele["att"]=cleanValue(att);
+            ele["val"]=cleanValue(val);
             title.push(ele);
         }
         rows.push(title);
     }
-    console.log("build datablock:end");
+//console.log("build datablock:end");
     return rows;
+}
+
+
+function adaptDataToTitle(title, data){
+    var res=[];
+    var sameMark=true;
+
+    if(title.length==data.length){
+        for(var i = 0; i < title.length; i++){
+            if(title[i].att!=data[i].att){
+                sameMark=false;
+            }
+        }
+    }else{
+        sameMark=false;
+    }
+
+    //same structure, change nothing, return directly
+    if(sameMark==true){
+        return data;
+    }
+
+    //title is fix,
+    //data shorter?
+    //data longer?
+    //data different?
+    var index = [];
+//console.log("--------------")
+    if(sameMark==false){
+        var tempTitle = title.slice(0);
+
+        for(var i = 0; i <tempTitle.length; i++){
+            //console.log("i= "+i);
+            //console.log("title "+title[i]);
+            var temp = tempTitle.slice(i,i+1);
+            //var ele = temp[0];
+
+            var att = temp[0].att;
+            var val = temp[0].val;
+
+            var changed=false;
+            var ele = {};
+            //search att in data, replace val in ele
+            for (var j = 0; j < data.length ; j ++){
+                //grab same attribute , this attribute must not used before.
+                /*
+                 console.log("data[j].att "+data[j].att);
+                 console.log("ele.att "+ele.att);
+                 console.log("ele.val before "+ ele.val);
+                 console.log("data[j].att == ele.att "+(data[j].att == ele.att));
+                 console.log("index.indexOf(j)"+index.indexOf(j))
+                 */
+                if(data[j].att == att && index.indexOf(j)==-1){
+
+                    var ele = {};
+                    ele["att"] = att;
+                    ele["val"] = data[j].val;
+                    index.push(j);
+                    changed = true;
+                    break;
+                }else{
+                    change = false;
+                }
+            }
+
+            if(changed==false){
+                var ele = {};
+                ele["att"] = att;
+                ele["val"] = "-";
+            }
+            res.push(ele);
+        }
+    }
+
+    return res;
 }
 
 function JSONtoCSV(inputCSV, title){
@@ -673,16 +1415,105 @@ function JSONtoCSV(inputCSV, title){
     return res;
 }
 
+function cleanValue(aValue){
+
+
+    var res="";
+    var heading="";
+    var tail="";
+
+    if(aValue.slice(aValue.length-1)==","){
+        tail = aValue.slice(0,aValue.length-1);
+        res = tail;
+    }else if(aValue.slice(aValue.length-1)=="]"){
+        tail = aValue.slice(0,aValue.length-1);
+        res = tail;
+    }else{
+        tail = aValue;
+        res = aValue;
+    }
+
+
+    if(aValue.slice(0,2)==":["){
+        heading = tail.slice(2,tail.length);
+        res=heading;
+    }else if(aValue.slice(0,2)==":{"){
+        heading = tail.slice(2,tail.length);
+        res=heading;
+    }else if(aValue.slice(0,1)=="{"){
+        heading = tail.slice(1,tail.length);
+        res=heading;
+    }else if(aValue.slice(0,1)=="["){
+        heading = tail.slice(1,tail.length);
+        res=heading;
+    }else if(aValue.slice(0,1)==":"){
+        heading = tail.slice(1,tail.length);
+        res=heading;
+    }else{
+        res = tail;
+    }
+
+    //console.log("in  "+ aValue);
+    //console.log("out "+ res);
+
+    return res;
+}
+function JSONtoConsoleCSV(inputCSV, title){
+    var res = "";
+    res+="";
+    for(idx in inputCSV){
+        if(title[idx].output==true){
+            if(inputCSV[idx]==undefined){
+                res+="wrong here";
+            }else{
+                res+=inputCSV[idx].val;
+            }
+            if(res.substring(res.length-1)==","){
+            }else {
+                res+=",";
+            }
+        }
+    }
+    res = res.substring(0,res.length-1);
+    //res+="\n";
+    return res;
+}
+
+function JSONtoConsoleCSVALL(inputCSV, title){
+    var res = "";
+    res+="";
+    for(idx in inputCSV){
+        if(1==1){
+            if(inputCSV[idx]==undefined){
+                res+="wrong here";
+            }else{
+                res+=inputCSV[idx].val;
+            }
+            if(res.substring(res.length-1)==","){
+            }else {
+                res+=",";
+            }
+        }
+    }
+    res = res.substring(0,res.length-1);
+    //res+="\n";
+    return res;
+}
+
+
+function debugValue(){
+
+}
 function JSONtoHTML(inputCSV, title){
 
     if(inputCSV.length!=title.length){
-        console.log("lets see input one is wrong :"+inputCSV.length);
-        console.log("lets see title one is wrong:"+title.length);
+//console.log("lets see input one is wrong :"+inputCSV.length);
+//console.log("lets see title one is wrong:"+title.length);
         for(indexA in inputCSV){
-            console.log("inputCSV is "+inputCSV[indexA].att);
+//console.log("inputCSV is "+inputCSV[indexA].att);
         }
         for(indexB in title){
-            console.log("title is "+title[indexB].att);
+//console.log("title is "+title[indexB].att);
         }
     }
     var res = "";
@@ -691,7 +1522,12 @@ function JSONtoHTML(inputCSV, title){
 
         if(title[idx].output==true){
             res+="<td>";
-            res+=inputCSV[idx].val;
+            if(inputCSV[idx]==undefined){
+                res+="wrong here";
+            }else{
+                res+=inputCSV[idx].val;
+            }
+
             res+="</td>";
         }
     }
@@ -699,9 +1535,9 @@ function JSONtoHTML(inputCSV, title){
     return res;
 }
 function cleanPrefix(prefix){
-    console.log("################################prefix to be clean#################################################################");
-    console.log(prefix);
-    console.log("################################prefix to be clean#################################################################");
+//console.log("################################prefix to be clean#################################################################");
+//console.log(prefix);
+//console.log("################################prefix to be clean#################################################################");
     for(indexA in prefix){
         //console.log("before clean"+prefix[indexA].indentation+prefix[indexA].line);
     }
@@ -717,12 +1553,12 @@ function cleanPrefix(prefix){
     var res = [];
     //check from backward
     for(var i = prefix.length-1; i >3; i--){
-        console.log("prefix["+i+"] is "+prefix[i].indentation+prefix[i].line);
+//console.log("prefix["+i+"] is "+prefix[i].indentation+prefix[i].line);
         if((prefix[i].indentation-prefix[i-1].indentation)<=-1
             && (prefix[i-1].indentation-prefix[i-2].indentation)<=-1){
             endLine = i;
             startMark = prefix[i].indentation;
-            console.log("here is a start mark with indentation =" + startMark);
+//console.log("here is a start mark with indentation =" + startMark);
             break;
         }
     }
@@ -731,7 +1567,7 @@ function cleanPrefix(prefix){
         if(prefix[i].indentation==startMark){
             endMark++;
             if(endMark==2){
-                console.log("here is an end mark with " + startMark);
+//console.log("here is an end mark with " + startMark);
                 startLine=i;
                 break;
             }
@@ -740,17 +1576,17 @@ function cleanPrefix(prefix){
     if(prefix.indexOf(prefix[startLine])>0){
         //startLine=prefix.indexOf(prefix[startLine]);
     }
-    console.log("startLine = "+startLine +"; endLine = "+ endLine);
+//console.log("startLine = "+startLine +"; endLine = "+ endLine);
     if(startLine<endLine) {
         part1 = prefix.slice(0, startLine);
         part2 = prefix.slice(endLine);
         for (idx in part2){
             part1.push(part2[idx]);
         }
-        console.log("start another loop with length = " + part1.length);
+//console.log("start another loop with length = " + part1.length);
         res = cleanPrefix(part1);
     }else {
-        console.log("final loop with length = " + prefix.length);
+//console.log("final loop with length = " + prefix.length);
 
         var ele={};
         for(var i = 0 ; i < prefix.length; i++){
@@ -784,20 +1620,20 @@ function cleanPrefix(prefix){
 }
 
 function checkPrefix(datas, prefix){
-    console.log("checkPrefix start");
+//console.log("checkPrefix start");
     for(idx in datas){
 
-        console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        console.log("prefix is " + prefix.length);
+//console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+//console.log("prefix is " + prefix.length);
         for(indexA in prefix){
             //console.log(prefix[indexA].indentation+prefix[indexA].line);
         }
-        console.log("datas[idx].prefi is " + datas[idx].prefix.length);
-        console.log("----------------------------------------------------------------------------------------------------");
+//console.log("datas[idx].prefi is " + datas[idx].prefix.length);
+//console.log("----------------------------------------------------------------------------------------------------");
         for(indexB in datas[idx].prefix){
             //console.log(datas[idx].prefix[indexB].indentation+datas[idx].prefix[indexB].line);
         }
-        console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+//console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
         if(datas[idx].prefix.length != prefix.length){
             //console.log("checkPrefix end: index is -1");
             return -1;
@@ -808,42 +1644,71 @@ function checkPrefix(datas, prefix){
                 return -1;
             }
         }
-        console.log("checkPrefix end: index is "+ idx);
+//console.log("checkPrefix end: index is "+ idx);
         return idx;
     }
 
     return -1;
 }
 function findSameTitle(datas, prefix, comparedData, simpledataFlag){
-    console.log("findSameTitle start");
+//console.log("findSameTitle start");
     var title = prefix;
-    console.log("title log start");
-    console.log(title);
-    console.log("title log end");
+
+//console.log("title log start");
+//console.log(title);
+//console.log("title log end");
 
     var res;
     //console.log("datas length " +datas.length);
     for(var i = 0; i < datas.length; i++){
+        //console.log("the "+i+" of datas");
         //log for compare title console.log("it is "+ i + "th data");
         res = true;
         if(datas[i].prefix.length < title.length){
-            for(indexA in datas[i].prefix){
-                console.log(datas[i].prefix[indexA].line);
+            if(datas.length == 9||datas.length == 8) {
+                //console.log("datas["+i+"].prefix.length="+datas[i].prefix.length +" is smaller than current cleaned title.length = "+title.length);
             }
-            console.log("datas["+i+"].prefix.length="+datas[i].prefix.length +" is larger than title.length = "+title.length);
             res = false;
             continue;
+        }else{
+            for(indexA in datas[i].prefix){
+
+                if(datas.length == 9 || datas.length == 8) {
+                    //      console.log(datas[i].prefix[indexA].att);
+                }
+            }
+            //console.log("data[i].prefix.length is "+datas[i].prefix.length);
+            //console.log("-----------------")
+            //console.log(title.length);
+            for(indexB in title){
+
+                if(datas.length == 9 || datas.length == 8) {
+
+                    //console.log(title[indexB].att);
+                }
+            }
+//            console.log("datas["+i+"].prefix.length="+datas[i].prefix.length +" is larger than current cleaned title.length = "+title.length);
         }
+
         for(idx in title){
-            if((title[idx].att) != (datas[i].prefix[idx].att)){
-                console.log(title[idx].att+" and "+datas[i].prefix[idx].att + " are different");
+            var cleanedValue = cleanValue((title[idx].att));
+            if(cleanedValue != (datas[i].prefix[idx].att)){
+
+                if(datas.length == 8||datas.length == 9) {
+//console.log(title[idx].att+" and "+datas[i].prefix[idx].att + " are different");
+                }
                 res = false;
                 break;
+            }
+            else{
+                //console.log(title[idx].att+" and "+datas[i].prefix[idx].att + " are same");
+                //console.log(res);
             }
         }
         if(res == true){
             //log for compare title console.log("findSameTitle : data "+ i +" has same title");
             resOfCheckData = checkData(datas[i],title.length, comparedData, simpledataFlag);
+            //console.log(resOfCheckData);
             if(resOfCheckData>=0){
                 //log for compare title console.log("findSameTitle : data "+ i +" has same data type");
                 return i;
@@ -853,16 +1718,18 @@ function findSameTitle(datas, prefix, comparedData, simpledataFlag){
             //return i;
         }
     }
-    console.log("findSameTitle end: Title different");
+//console.log("findSameTitle end: Title different");
     return -1;
 }
+
+
 function addDataToExist(prefix, originalData, additionalData, simpledataFlag){
     var rowPrefix = prefix.slice(0);
     var dataStack = [];
 
-    console.log("rowPrefix log start");
-    console.log(rowPrefix);
-    console.log("rowPrefix log end");
+//console.log("rowPrefix log start");
+//console.log(rowPrefix);
+//console.log("rowPrefix log end");
     var rows = originalData.datablock.slice(0);
 
     if(simpledataFlag == false){
@@ -874,19 +1741,29 @@ function addDataToExist(prefix, originalData, additionalData, simpledataFlag){
             }
             if (splitPoint > -1) {
                 var att = additionalData[i].line.substring(0, splitPoint);
-                var val = additionalData[i].line.substring(splitPoint);
+                var val = additionalData[i].line.substring(splitPoint+1);
                 var temp = val.substring(1);
                 if (temp.substring(val.length - 1) == ",") {
                     temp = temp.substring(0, val.length - 1);
                 }
                 ele = {};
                 ele["indentation"] = additionalData[i].indentation;
-                ele["att"] = att;
-                ele["val"] = temp;
+                ele["att"] = cleanValue(att);
+                ele["val"] = cleanValue(temp);
                 dataStack.push(ele);
             }
             if(additionalData[i].line.indexOf("}")>-1){
-                var temp = rowPrefix.slice(0);
+                //var temp = rowPrefix.slice(0);
+                var temp = [];
+                for(idx in rowPrefix){
+                    var ele = {};
+                    ele={};
+                    ele["indentation"] = prefix[idx].indentation;
+                    ele["att"]= cleanValue(prefix[idx].att);
+                    ele["val"]= cleanValue(prefix[idx].val);
+                    temp.push(ele);
+                }
+
                 for (idx in dataStack){
                     temp.push(dataStack[idx]);
                 }
@@ -902,7 +1779,7 @@ function addDataToExist(prefix, originalData, additionalData, simpledataFlag){
 
             if(splitPoint>-1){
                 var att = additionalData[i].line.substring(0,splitPoint);
-                var val = additionalData[i].line.substring(splitPoint);
+                var val = additionalData[i].line.substring(splitPoint+1);
             }
             else{
                 var att = additionalData[i].line;
@@ -910,13 +1787,13 @@ function addDataToExist(prefix, originalData, additionalData, simpledataFlag){
             }
             ele={};
             ele["indentation"] ="";
-            ele["att"]=att;
-            ele["val"]=val;
+            ele["att"] = cleanValue(att);
+            ele["val"] = cleanValue(val);
             rowPrefix.push(ele);
         }
         rows.push(rowPrefix);
     }
-    console.log("add additional data end");
+//console.log("add additional data end");
     return rows;
 }
 function checkSimpleData(comparedData){
@@ -974,22 +1851,22 @@ function checkSimpleData(comparedData){
     return false;
 }
 function checkData(originalData, prefixLength, comparedData, simpledataFlag){
-    console.log("checkData start");
-    console.log("comparedData log");
-    console.log(comparedData);
-    console.log("comparedData log");
-    console.log("originalData.simple="+originalData.simple);
+//console.log("checkData start");
+//console.log("comparedData log");
+//console.log(comparedData);
+//console.log("comparedData log");
+//console.log("originalData.simple="+originalData.simple);
     var dataStack = [];
     var dataTitle = [];
     var count = 0;
     var originalTitle = originalData.datablock[0]
     if((originalData.simple!=true) && (simpledataFlag==true)){
-        console.log("simple data can not be the same with array datas");
+//console.log("simple data can not be the same with array datas");
         return -1;
     }else if((originalData.simple==true) && (simpledataFlag==true)){
         for(var i = 0 ; i < comparedData.length; i++) {
             if (comparedData[i].line.indexOf("[") > -1) {
-                console.log("this data is a single data, has no title");
+//console.log("this data is a single data, has no title");
                 count++;
                 dataStack.length = 0;
             }
@@ -997,7 +1874,7 @@ function checkData(originalData, prefixLength, comparedData, simpledataFlag){
             if (splitPoint > -1) {
                 if (count == 1) {
                     var att = comparedData[i].line.substring(0, splitPoint);
-                    var val = comparedData[i].line.substring(splitPoint);
+                    var val = comparedData[i].line.substring(splitPoint+1);
                     ele = {};
                     ele["indentation"] = comparedData[i].indentation;
                     ele["att"] = att;
@@ -1023,16 +1900,22 @@ function checkData(originalData, prefixLength, comparedData, simpledataFlag){
         }
     }
 
+    var deepTitle = false;
     for(var i = 0 ; i < comparedData.length; i++) {
         if (comparedData[i].line.indexOf("{") > -1) {
             count++;
             dataStack.length = 0;
         }
         var splitPoint = comparedData[i].line.indexOf(":");
+        //console.log("for line " +comparedData[i].line+" the split point is at "+splitPoint);
+        //console.log("count is "+count);
         if (splitPoint > -1) {
-            if (count == 1) {
+            if(count == 2 && dataTitle.length==0){
+                deepTitle = true;
+            }
+            if (count == 1 ||(count == 2 && deepTitle==true)) {
                 var att = comparedData[i].line.substring(0, splitPoint);
-                var val = comparedData[i].line.substring(splitPoint);
+                var val = comparedData[i].line.substring(splitPoint+1);
                 ele = {};
                 ele["indentation"] = comparedData[i].indentation;
                 ele["att"] = att;
@@ -1045,7 +1928,7 @@ function checkData(originalData, prefixLength, comparedData, simpledataFlag){
     if(count == 0){
         for(var i = 0 ; i < comparedData.length; i++) {
             if (comparedData[i].line.indexOf("[") > -1) {
-                console.log("this data is a single data, has no title");
+//console.log("this data is a single data, has no title");
                 count++;
                 dataStack.length = 0;
             }
@@ -1053,7 +1936,7 @@ function checkData(originalData, prefixLength, comparedData, simpledataFlag){
             if (splitPoint > -1) {
                 if (count == 1) {
                     var att = comparedData[i].line.substring(0, splitPoint);
-                    var val = comparedData[i].line.substring(splitPoint);
+                    var val = comparedData[i].line.substring(splitPoint+1);
                     ele = {};
                     ele["indentation"] = comparedData[i].indentation;
                     ele["att"] = att;
@@ -1072,12 +1955,13 @@ function checkData(originalData, prefixLength, comparedData, simpledataFlag){
             }
         }
         if (count == 1) {
-            console.log("checkData end: find same title with data legth = " + dataTitle.length);
+//console.log("checkData end: find same title with data legth = " + dataTitle.length);
             return -99;
         }
     }
 
     if((prefixLength + dataTitle.length)!=originalTitle.length){
+        //console.log(prefixLength +" + "+ dataTitle.length+" != "+originalTitle.length)
         //console.log("checkData end: title length different, return -1");
         return -1;
     }
@@ -1085,11 +1969,11 @@ function checkData(originalData, prefixLength, comparedData, simpledataFlag){
     //console.log("original title is "+originalTitle);
     for (var i = 0; i < dataTitle.length ; i++){
         if(dataTitle[dataTitle.length-i-1].att!=originalTitle[originalTitle.length-i-1].att){
-            console.log("checkData end: title context different, return -1");
+//console.log("checkData end: title context different, return -1");
             return -1;
         }
     }
-    console.log("checkData end: find same title with data legth = " + dataTitle.length);
+//console.log("checkData end: find same title with data legth = " + dataTitle.length);
     return dataTitle.length;
 }
 function writeLog(msg){
@@ -1104,7 +1988,8 @@ function writeLog(msg){
 
 }
 function realfunction(response,request,postData) {
-    console.log("reading file " + postData );
+    var date = new Date();
+    console.log(date.toISOString()+": reading file " + postData );
     var test ;
     var treatJS =[];
     var req = require('request');
@@ -1126,84 +2011,117 @@ function realfunction(response,request,postData) {
     //req(postData).pipe(fs.createWriteStream('/home/wk/result.html'))
     req.get(postData, function (error, res, body) {
         if (!error && res.statusCode == 200) {
-                //test = body.toString();
+            //test = body.toString();
             //toJson = sync(toJson);
             sync(parser, 'toJson');
             var json = parser.toJson(body);
-            console.log("json log");
-            console.log(json);
-            console.log("json log");
-            treatJS = treatJson(json);
+
+
+            //this is the handle the tag given by xml2json
+            var str = json.replace(/\"\$t\"/g,"\"description\"");
+
+            //console.log(str);
+            //console.log("json log");
+            var treatXML = treatXMLFile(body);
+            //console.log(body);
+            treatJS = treatJson(str);
 
             var result = "";
+            var resultArray = [] ;
             result+=func;
             for (var i = 0 ; i<treatJS.length; i ++){
                 result+=("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
                 result+=("<div id=\"toc"+i+"\" hidden>");
-                result+=("<table style=\"width:100%\">");
-                if(i == 17){
-                    for(indexA in treatJS[17]){
-                        var temp = treatJS[17][indexA];
-                        console.log("%%%%%%%%%%%%%%%%%%%%%%%%")
-                        console.log("temp: "+temp);
-                        for(indexB in temp){
-                            console.log("att: "+temp[indexB].att+" "+temp[indexB].val);
-                        }
-                        console.log("%%%%%%%%%%%%%%%%%%%%%%%%")
-                    }
+                result+=("<table style=\"width:100%\" border=1>");
 
-                }
                 var title = treatJS[i][0];
-                console.log("^^^^^^^^final log^^^^^^^^");
-                console.log(title);
-                console.log("^^^^^^^^final log end^^^^");
+                //console.log("^^^^^^^^final log^^^^^^^^");
+                //console.log(title);
+                //console.log("^^^^^^^^final log end^^^^");
+
+                //console.log("treatJS["+i+"] length is // row count"+treatJS[i].length);
+                var aCSV = "";
                 for (var j = 0; j < treatJS[i].length; j++){
                     //var htmlLine = JSONtoCSV(treatJS[i][j],title);
+                    //var htmlLine = JSONtoConsoleCSV(treatJS[i][j],title);
                     var htmlLine = JSONtoHTML(treatJS[i][j],title);
                     result+=(htmlLine);
+                    //console.log("treatJS["+i+"]["+j+"] length is //column count"+treatJS[i][j].length);
+                    var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
+                    //console.log(consoleLine);
+                    aCSV+=consoleLine;
+                    aCSV+='\n';
+                    var consoleLineall = JSONtoConsoleCSVALL(treatJS[i][j],title);
+                    //console.log(consoleLineall);
                 }
+                resultArray.push(aCSV);
+                //console.log("");
                 result+=("</table>");
                 result+=("</div>");
                 result+=("<br/>");
             }
 
-            console.log("result log");
-            console.log(result);
-            console.log("result log");
+
+            var fs    = require('fs');
+            var path  = require('path');
+            var fileName = postData.substring(postData.lastIndexOf('/')+1,postData.length-4);
+            //console.log("123456"+fileName);
+            var directory = "/tmp/transformTool/"+fileName;
+            var mkdirp = require('mkdirp');
+            mkdirp(directory, function(err) {
+
+                // path exists unless there was an error
+
+            });
+
+            //additional floder
+            mkdirp(directory+"/"+ resultArray.length, function(err) {
+
+                // path exists unless there was an error
+
+            });
+
+            for (var i = 0; i < resultArray.length; i ++){
+                //console.log("temp "+ resultArray.length)
+                var fs = require('fs');
+                fs.writeFile(directory+"/"+i+".csv", resultArray[i], function(err) {
+                    ///console.log("in sync");
+                    if(err) {
+                        return console.log(err);
+                    }
+                    var date = new Date();
+                    //console.log(date.toISOString()+": The file "+i+" was saved!");
+                });
+            }
+            //console.log("result log");
+            //console.log(result);
+            //console.log("result log");
             var fs = require('fs');
             fs.writeFile("/tmp/result.html", result, function(err) {
                 if(err) {
                     return console.log(err);
                 }
-                console.log("The file was saved!");
+                var date = new Date();
+                console.log(date.toISOString()+": The file was saved!");
             });
+
+
         }
     });
 
-    console.log("reading file finished");
+    var date = new Date();
+    console.log(date.toISOString()+": reading file finished");
 
-    //response.write("<a href = '/tmp/test'> test ");
-    for (var i = 0 ; i<treatJS.length; i ++){
-        response.write("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
-        response.write("<div id=\"toc"+i+"\" hidden>");
-        response.write("<table style=\"width:100%\">");
-        for (var j = 0; j < treatJS[i].length; j++){
-            var htmlLine = JSONtoCSV(treatJS[i][j]);
-            response.write(htmlLine);
-        }
-        response.write("</table>");
-        response.write("</div>");
-        response.write("<br/>");
-    }
     response.end();
 
-    console.log("response.end()");
+    var date = new Date();
+    console.log(date.toISOString()+": response.end()");
 }
-//exports.start = start;
-//exports.upload = upload;
-//exports.show = show;
-//exports.xmlload = xmlload;
+exports.start = start;
+exports.upload = upload;
+exports.show = show;
+exports.xmlload = xmlload;
 //exports.showxml2json = showxml2json;
-//exports.showtraverse = showtraverse;
-//exports.addNewPage = addNewPage;
-//exports.realfunction = realfunction;
+exports.showtraverse = showtraverse;
+exports.addNewPage = addNewPage;
+exports.realfunction = realfunction;

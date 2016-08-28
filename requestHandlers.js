@@ -82,17 +82,17 @@ function xmlload(response, request) {
     var form = new formidable.IncomingForm();
     console.log("about to parse");
     form.parse(request, function(error, fields, files) {
-         console.log("parsing done");
+        console.log("parsing done");
 //console.log(files);
 //console.log(files.upload);
 //console.log(files.upload.path);
-         fs.renameSync(files.upload.path, "/tmp/test.xml");
-         response.writeHead(200, {"Content-Type": "text/html"});
-         response.write("received data:<br/>");
-         response.write(json);
-         //response.write("<img src='/show' />");
-         //response.write("<lable>test</lable>")
-         response.end();
+        fs.renameSync(files.upload.path, "/tmp/test.xml");
+        response.writeHead(200, {"Content-Type": "text/html"});
+        response.write("received data:<br/>");
+        response.write(json);
+        //response.write("<img src='/show' />");
+        //response.write("<lable>test</lable>")
+        response.end();
     });
 }
 function readFiles(dirname, onFileContent, onError){
@@ -276,7 +276,7 @@ function checkIsLeaf(aTree){
 //put in a tree.
 //give out an array.
 function recFunc(aTree, parentArr, result, child){
-//console.log(aTree);
+
     //parent
     var parent = [];
     parent=parentArr.slice(0);
@@ -286,17 +286,6 @@ function recFunc(aTree, parentArr, result, child){
 
     //go deep mark
     var isLeaf = checkIsLeaf(aTree);
-
-    //check input
-    if(typeof (aTree)=="string"){
-
-    }else{
-        if(aTree.child(0)!=null){
-            if(aTree.child(0).toString().substring(0,1)!="<"){
-              // isLeaf= true;
-            }
-        }
-    }
 
     //xml
     var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
@@ -308,7 +297,7 @@ function recFunc(aTree, parentArr, result, child){
     var rootName=contactElement.name();
 
 
-    //var ele
+    //var ele = current
     var ele = {}
     ele["Tree"] = aTree;
     ele["Root"] = contactElement;
@@ -347,6 +336,8 @@ function recFunc(aTree, parentArr, result, child){
             }
         }
 
+        //parent.unshift("isNode");
+
         var tempNode = {}
         tempNode["Tree"] = "";
         tempNode["Root"] = "";
@@ -358,18 +349,22 @@ function recFunc(aTree, parentArr, result, child){
         tempNode["ChilrenNumber"] = ""
         tempNode["Chilren[0]"] = "";
         tempNode["isLeaf"] = "isNode";
-
         parent.unshift(tempNode);
+
+
         res.unshift(parent);
 
     }else {
 
         /*
-        console.log("--------------------Child--------------------")
-        console.log(child)
-        console.log("--------------------Child--------------------")
-        */
+         console.log("--------------------Child--------------------")
+         console.log(child)
+         console.log("--------------------Child--------------------")
+         */
+        //child.unshift(rootName);
         child.unshift(ele);
+
+        //parent.unshift("isLeaf");
 
         var tempNode = {}
         tempNode["Tree"] = "";
@@ -382,9 +377,8 @@ function recFunc(aTree, parentArr, result, child){
         tempNode["ChilrenNumber"] = ""
         tempNode["Chilren[0]"] = "";
         tempNode["isLeaf"] = "isLeaf";
-
-
         parent.unshift(tempNode);
+
         res.unshift(parent);
     }
 
@@ -410,35 +404,36 @@ function recFunc(aTree, parentArr, result, child){
         return res;
     }
 }
-
+//                  tempData   res
 function checkExist(inputLeaf, outputStack){
+
+    //console.log();
     var res = -1;
-    //console.log("outputStack.length"+outputStack.length);
     for(var i = 0; i < outputStack.length; i ++){
 
         //console.log("------------------");
-
-
+        //var table = outputStack[i];
+        //var title = outputStack[i].title;
         var table = outputStack[i].title;
-        var title  = [];
+        //console.log("table is "+table)
+        var title = [];
 
         for(idx in table){
             title.push(table[idx].RootName);
+            //console.log(table[idx].RootName)
         }
 
+        //console.log("title is ");
         //console.log(title);
-        //var title = outputStack[i].title;
-
+        //console.log(title.length+" : "+inputLeaf.length)
         if(title.length != inputLeaf.length){
             continue;
         }
 
-
         var sameMark = false;
-
         for(var j = 0; j < title.length; j ++){
-            //console.log(title[j]);
-            //console.log(inputLeaf[j]);
+            //console.log("title[j]"+title[j]);
+            //console.log("inputLeaf[j].RootName"+inputLeaf[j].RootName);
 
             if(title[j]!=inputLeaf[j].RootName){
                 break;
@@ -450,10 +445,13 @@ function checkExist(inputLeaf, outputStack){
         }
 
         if(sameMark==true){
+
+            //console.log("index "+i);
             return i;
         }
 
     }
+    //console.log("index "+-1);
     return -1;
 }
 
@@ -464,6 +462,8 @@ function combineBranch(treeStructure){
     //to hold the leaf with same parent
     var temp = [];
     for(var i = 0; i < treeStructure.length; i++){
+
+        //console.log("treeStructure[i][0].RootName = "+treeStructure[i][0].RootName);
 
         var aData = treeStructure[i];
         if(i==treeStructure.length-1){
@@ -485,27 +485,30 @@ function combineBranch(treeStructure){
             //console.log("second condition " + sameMark );
         }
 
-        //console.log(sameMark);
+        //console.log("sameMark" + sameMark);
 
         if( sameMark == true){
             temp.push(treeStructure[i][aData.length-1]);
             continue;
         }
-        //console.log("option 1 " + temp.length );
 
         var tempData = aData.slice(0,aData.length-1);
 
         if(sameMark == false && temp.length >0){
             temp.push(treeStructure[i][aData.length-1]);
 
-            for(var j = 0 ; j < temp.length; j++){
+            for(var j = 1 ; j < temp.length; j++){
                 tempData.push(temp[j]);
             }
 
+
+            for(var x = 0 ; x < tempData.length; x++){
+                //console.log("tempDataX" + tempData[x].RootName+" : "+tempData[x].Text);
+            }
             //clear temp
             temp.length = 0;
         }
-        //console.log(tempData);
+
 
         //console.log("treeStructure[i].isLeaf==true? " + treeStructure[i][0]);
         if(treeStructure[i][0].RootName=="isLeaf"){
@@ -514,16 +517,14 @@ function combineBranch(treeStructure){
             //console.log(res);
             //console.log(checkExist(treeStructure[i],res));
             var index = checkExist(tempData,res);
-            //console.log(tempData);
-            //console.log(index);
+            //console.log("index is "+index);
             if(index==-1){
                 var ele = {};
                 ele["title"]=tempData;
-                ele["count"]=0;
+                ele["count"]=1;
                 ele["values"]=[];
                 ele["values"].push(tempData);
                 res.push(ele);
-                //console.log(ele.title);
             }else{
 
                 res[index].values.push(tempData);
@@ -536,6 +537,8 @@ function combineBranch(treeStructure){
         }
     }
 
+    //console.log(res);
+
     return res;
 }
 
@@ -545,16 +548,29 @@ function treatXMLFile(xmlInput){
     //console.log(result);
     //var xml = libxmljs.parseXmlString(body);
     var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
-    console.log(xmlInput);
-    console.log(xml);
     treeStructure=recFunc(xml,[],[],[]);
     //console.log(treeStructure);
+    //console.log("------------------------");
+
     var tables = combineBranch(treeStructure);
 
-    for(idx in tables){
-        //console.log(tables[idx].title)
-    }
+    //console.log("------------------------");
 
+
+    //console.log("tables");
+    //console.log(tables);
+
+    console.log("values")
+    console.log(tables[0]["values"]);
+
+    console.log("title")
+    console.log(tables[0].title);
+
+
+    for(idx in tables[0].values){
+        console.log("detail");
+        console.log(tables[0].values[idx])
+    }
 
     //console.log("json log");
     //----------------------------------------------
@@ -755,25 +771,25 @@ function treatJson( json ){
 //console.log("update data " + index);
                 datas[index] = ele;
                 /*
-                //data title is same
-                if (dataLength>0) {
-                    //prefix exist, and data title is same , add to exist
-                    var dataBlock = addDataToExist(cleanedPrefix, datas[index], data);
-                    var ele = {};
-                    ele["prefix"] =dataBlock[0];
-                    ele["datablock"]=dataBlock;
-                    console.log("update data " + index);
-                    datas[index] = ele;
-                }else{
-                    //prefix exist, but data title is different, make new block
-                    var dataBlock = treatData(cleanedPrefix, data);
-                    var ele = {};
-                    ele["prefix"] =dataBlock[0];
-                    ele["datablock"]=dataBlock;
-                    console.log("add a new data to datas with number"+ datas.length);
-                    datas.push(ele);
-                }
-                */
+                 //data title is same
+                 if (dataLength>0) {
+                 //prefix exist, and data title is same , add to exist
+                 var dataBlock = addDataToExist(cleanedPrefix, datas[index], data);
+                 var ele = {};
+                 ele["prefix"] =dataBlock[0];
+                 ele["datablock"]=dataBlock;
+                 console.log("update data " + index);
+                 datas[index] = ele;
+                 }else{
+                 //prefix exist, but data title is different, make new block
+                 var dataBlock = treatData(cleanedPrefix, data);
+                 var ele = {};
+                 ele["prefix"] =dataBlock[0];
+                 ele["datablock"]=dataBlock;
+                 console.log("add a new data to datas with number"+ datas.length);
+                 datas.push(ele);
+                 }
+                 */
             }
             //prefix is different
             else {
@@ -1170,30 +1186,30 @@ function treatData(prefix,data ,simpledataFlag){
                 //not first row
                 if(rows.length >1){
                     /*
-                    //normal branch,
-                    if(tempTitle.length>rowItemCount){
-                        if(tempTitle[rowItemCount].att==att){
-                            //usual case, all same
-                            //add an element
-                            ele={};
-                            ele["indentation"] = data[i].indentation;
-                            ele["att"]=cleanValue(att);
-                            ele["val"]=cleanValue(temp);
-                            dataStack.push(ele);
-                        }else{
-                            //unusual case, row item is different from title at[rowItemCount]
-                            //temproary :omit this item, keep title
-                            ele={};
-                            ele["indentation"] = tempTitle[rowItemCount].indentation;
-                            ele["att"]=tempTitle[rowItemCount].att;
-                            ele["val"]="-";
+                     //normal branch,
+                     if(tempTitle.length>rowItemCount){
+                     if(tempTitle[rowItemCount].att==att){
+                     //usual case, all same
+                     //add an element
+                     ele={};
+                     ele["indentation"] = data[i].indentation;
+                     ele["att"]=cleanValue(att);
+                     ele["val"]=cleanValue(temp);
+                     dataStack.push(ele);
+                     }else{
+                     //unusual case, row item is different from title at[rowItemCount]
+                     //temproary :omit this item, keep title
+                     ele={};
+                     ele["indentation"] = tempTitle[rowItemCount].indentation;
+                     ele["att"]=tempTitle[rowItemCount].att;
+                     ele["val"]="-";
 
-                            rowItemCount--;
-                        }
-                    }else{
-                        //this branch means, rows has more column than title
-                    }
-                    */
+                     rowItemCount--;
+                     }
+                     }else{
+                     //this branch means, rows has more column than title
+                     }
+                     */
 
                     ele={};
                     ele["indentation"] = data[i].indentation;
@@ -1338,12 +1354,12 @@ function adaptDataToTitle(title, data){
             for (var j = 0; j < data.length ; j ++){
                 //grab same attribute , this attribute must not used before.
                 /*
-                console.log("data[j].att "+data[j].att);
-                console.log("ele.att "+ele.att);
-                console.log("ele.val before "+ ele.val);
-                console.log("data[j].att == ele.att "+(data[j].att == ele.att));
-                console.log("index.indexOf(j)"+index.indexOf(j))
-                */
+                 console.log("data[j].att "+data[j].att);
+                 console.log("ele.att "+ele.att);
+                 console.log("ele.val before "+ ele.val);
+                 console.log("data[j].att == ele.att "+(data[j].att == ele.att));
+                 console.log("index.indexOf(j)"+index.indexOf(j))
+                 */
                 if(data[j].att == att && index.indexOf(j)==-1){
 
                     var ele = {};
@@ -1645,7 +1661,7 @@ function findSameTitle(datas, prefix, comparedData, simpledataFlag){
             for(indexA in datas[i].prefix){
 
                 if(datas.length == 9 || datas.length == 8) {
-              //      console.log(datas[i].prefix[indexA].att);
+                    //      console.log(datas[i].prefix[indexA].att);
                 }
             }
             //console.log("data[i].prefix.length is "+datas[i].prefix.length);
@@ -1982,7 +1998,7 @@ function realfunction(response,request,postData) {
     //req(postData).pipe(fs.createWriteStream('/home/wk/result.html'))
     req.get(postData, function (error, res, body) {
         if (!error && res.statusCode == 200) {
-                //test = body.toString();
+            //test = body.toString();
             //toJson = sync(toJson);
             sync(parser, 'toJson');
             var json = parser.toJson(body);
