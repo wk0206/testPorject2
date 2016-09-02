@@ -273,19 +273,36 @@ function checkIsLeaf(aTree){
     return isLeaf;
 }
 
-//put in a tree.
-//give out an array.
-function recFunc(aTree, parentArr, result, child){
+function checkIsDescription(aTree){
 
-    //parent
-    var parent = [];
-    parent=parentArr.slice(0);
+    console.log(aTree);
+    var res = true;
 
-    //global result
-    var res = result;
+    if(aTree.childNodes()!=undefined){
+        var length = aTree.childNodes().length;
+        if(length > 1){
+            return false;
+        }else {
+            return checkIsDescription(aTree.child(0));
+        }
 
-    //go deep mark
-    var isLeaf = checkIsLeaf(aTree);
+    }
+
+
+    return res;
+}
+
+
+function addChild(aTree,res){
+    console.log("in addChild")
+    console.log("    "+"aTree.tostring : " + aTree.toString());
+    //console.log("aTree type :"+typeof (aTree))
+
+    if(aTree.name()=="text"){
+        console.log("    "+"only text , last layer");
+        console.log("    "+"directly return ");
+        return res;
+    }
 
     //xml
     var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
@@ -296,6 +313,126 @@ function recFunc(aTree, parentArr, result, child){
     //root name
     var rootName=contactElement.name();
 
+    var children = aTree.childNodes();
+
+    if(aTree.child(0)!=null){
+        console.log("    "+"child is not empty");
+
+        if(aTree.child(0).toString().substring(0,1)!="<"){
+            //res.push();
+            console.log("        "+"but will stop here ,output layer");
+            console.log("        "+"aTree.text() : " + aTree.text());
+            console.log("        "+"aTree.name : " + aTree.name());
+
+
+            var ele = {}
+            ele["Tree"] = aTree;
+            ele["Root"] = "";
+            ele["RootName"] = aTree.name();
+            ele["Attribute"] = aTree.attrs();
+            ele["Text"] = aTree.text();
+            ele["Path"] = aTree.path();
+            ele["Chilrden"] = aTree.childNodes();
+            ele["ChilrdenNumber"] = aTree.childNodes().length;
+            ele["Chilrden[0]"] = aTree.childNodes()[0];
+            ele["isLeaf"] = checkIsLeaf(aTree);
+            ele["output"] = true;
+
+/*
+            var children = aTree.childNodes();
+            if(children==undefined || (children == "")){
+                console.log("empty node");
+            }else{
+                console.log("node with length "+ children.length);
+            }
+*/
+            res.push(ele);
+            return res;
+        } else {
+            if(children.length != 1){
+                return res;
+            }else{
+                var result = addChild(aTree.child(0),res);
+                return result;
+            }
+        }
+    }else{
+        console.log("    "+"child is empty");
+        console.log("    "+"aTree.text() : " + aTree.text());
+        console.log("    "+"aTree.name() : " + aTree.name());
+    }
+/*
+
+    console.log("checkIsLeaf(aTree)"+checkIsLeaf(aTree));
+
+    //xml
+    if(!checkIsLeaf(aTree)){
+
+        console.log("not a leaf"+aTree.doc());
+        var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
+        console.log("xml"+xml);
+
+        //root
+        var contactElement = xml.root();
+        //console.log("contactElement"+contactElement);
+        var children = contactElement.childNodes();
+        //console.log("children"+children);
+
+        console.log(children.length)
+        if(!checkIsLeaf(aTree) && children.length==1){
+            addChild(children[0],res);
+        }
+
+    }else{
+        console.log("is  a leaf"+aTree.text());
+    }
+
+
+    //this tree should be stright
+    if(checkIsLeaf(aTree)){
+
+    }
+
+    //this tree should be single
+
+*/
+    return res;
+}
+
+function checkChild(aTree){
+    //var res = [0];
+
+    //return res;
+}
+
+//put in a tree.
+//give out an array.
+function recFunc(aTree, parentArr, result, child){
+console.log("--------------------------")
+    //parent
+    var parent = [];
+    parent=parentArr.slice(0);
+
+    //global result
+    var res = result;
+
+    //go deep mark
+    var isLeaf = checkIsLeaf(aTree);
+    console.log("is a leaf? "+isLeaf);
+
+
+    //xml
+    var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
+
+    //root
+    var contactElement = xml.root();
+
+    //root name
+    var rootName=contactElement.name();
+
+    //console.log(checkIsDescription(aTree));
+
+
 
     //var ele = current
     var ele = {}
@@ -303,17 +440,108 @@ function recFunc(aTree, parentArr, result, child){
     ele["Root"] = contactElement;
     ele["RootName"] = rootName;
     ele["Attribute"] = contactElement.attrs();
-    ele["Text"] = contactElement.text();
-    ele["Path"] = contactElement.path();
-    ele["Chilren"] = contactElement.childNodes();
-    ele["ChilrenNumber"] = contactElement.childNodes().length;
-    ele["Chilren[0]"] = contactElement.childNodes()[0];
+    ele["Text"] = contactElement.name();
+    if(parentArr.length!=0){
+
+        console.log(parentArr[parentArr.length-1]["Path"]+contactElement.path());
+        ele["Path"] = parentArr[parentArr.length-1]["Path"]+contactElement.path();
+    }else{
+        ele["Path"] = contactElement.path();
+    }
+
+
+    ele["Chilrden"] = contactElement.childNodes();
+    ele["ChilrdenNumber"] = contactElement.childNodes().length;
+    ele["Chilrden[0]"] = contactElement.childNodes()[0];
     ele["isLeaf"] = checkIsLeaf(aTree);
+    ele["output"] = false;
 
 
     //add this name to parent(include itself)
 
     parent.push(ele);
+
+
+    //console.log(ele["Attribute"].length);
+    if(ele["Attribute"].length>0){
+        //console.log("not empty");
+        var attrList = ele["Attribute"];
+
+        for(idx in ele["Attribute"]){
+            var attr = {}
+            attr["Tree"] = "";
+            attr["Root"] = "";
+            attr["RootName"] = ele["RootName"] + " " + attrList[idx].name();
+            attr["Attribute"] = "";
+            attr["Text"] = attrList[idx].value();
+            attr["Path"] = ele["Path"];
+            attr["Children"] = "";
+            attr["ChildrenNumber"] = "";
+            attr["Children[0]"] = "";
+            attr["isLeaf"] = "";
+            attr["output"] = true;
+            //console.log(ele["RootName"] + " " + attrList[idx].name());
+            //console.log(attrList[idx].value());
+            parent.push(attr);
+        }
+    }
+
+    var children = contactElement.childNodes();
+    var childrenB = [];
+    if(children==undefined || (children == "")){
+        console.log("ele[\"Children\"]==undefined");
+    }else{
+        console.log("how many children " +children.length);
+
+
+        for(var i = 0; i < children.length; i ++){
+            //console.log("to string "+test[idx].toString());
+            var childrenA = addChild(children[i],[]);
+            //  childrenB = test-childrenA
+
+            if(childrenA.length == 0 ){
+                childrenB.push(children[i]);
+            }else{
+                console.log("some return from addChild()" +childrenA[0]["RootName"]);
+            }
+            //var childEles = addChild(test[idx],[]);
+        }
+
+        if(childrenB.length >0){
+
+        }
+
+
+    }
+
+
+    if(ele["Children"]!=undefined){
+        for(var i = childrenB.length-1 ; i>-1 ; i--){
+
+            //var childEles = addChild(children[i],[]);
+
+            if(checkIsLeaf(children[i])){
+                var childEle = {}
+                childEle["Tree"] = "";
+                childEle["Root"] = "";
+                childEle["RootName"] = ele["RootName"] + " " + children[i].name();
+                childEle["Attribute"] = "";
+                childEle["Text"] = children[i].text();
+                childEle["Path"] = ele["Path"];
+                childEle["Chilrden"] = "";
+                childEle["ChilrdenNumber"] = "";
+                childEle["Chilrden[0]"] = "";
+                childEle["isLeaf"] = "";
+                childEle["output"] = true;
+                //console.log(ele["RootName"] + " " + attrList[idx].name());
+                //console.log(attrList[idx].value());
+                //parent.push(childEle);
+            }
+
+        }
+    }
+
+
 
 
     // number of child
@@ -325,9 +553,9 @@ function recFunc(aTree, parentArr, result, child){
     //each child call recFunc again
     if(isLeaf==false){
 
-        for(var i = children.length-1 ; i>-1 ; i--){
+        for(var i = childrenB.length-1 ; i>-1 ; i--){
 
-            recFunc(children[i],parent,res,child);
+            recFunc(childrenB[i],parent,res,child);
 
             if(i==0){
                 //last element
@@ -343,12 +571,13 @@ function recFunc(aTree, parentArr, result, child){
         tempNode["Root"] = "";
         tempNode["RootName"] = "isNode";
         tempNode["Attribute"] = "";
-        tempNode["Text"] = "";
+        tempNode["Text"] = "isNode";
         tempNode["Path"] = "";
-        tempNode["Chilren"] = "";
-        tempNode["ChilrenNumber"] = ""
-        tempNode["Chilren[0]"] = "";
+        tempNode["Chilrden"] = "";
+        tempNode["ChilrdenNumber"] = ""
+        tempNode["Chilrden[0]"] = "";
         tempNode["isLeaf"] = "isNode";
+        tempNode["output"] = false;
         parent.unshift(tempNode);
 
 
@@ -362,6 +591,9 @@ function recFunc(aTree, parentArr, result, child){
          console.log("--------------------Child--------------------")
          */
         //child.unshift(rootName);
+
+        ele["Text"]=contactElement.text();
+        ele["output"] = true;
         child.unshift(ele);
 
         //parent.unshift("isLeaf");
@@ -371,12 +603,13 @@ function recFunc(aTree, parentArr, result, child){
         tempNode["Root"] = "";
         tempNode["RootName"] = "isLeaf";
         tempNode["Attribute"] = "";
-        tempNode["Text"] = "";
+        tempNode["Text"] = "isLeaf";
         tempNode["Path"] = "";
-        tempNode["Chilren"] = "";
-        tempNode["ChilrenNumber"] = ""
-        tempNode["Chilren[0]"] = "";
+        tempNode["Chilrden"] = "";
+        tempNode["ChilrdenNumber"] = ""
+        tempNode["Chilrden[0]"] = "";
         tempNode["isLeaf"] = "isLeaf";
+        tempNode["output"] = false;
         parent.unshift(tempNode);
 
         res.unshift(parent);
@@ -549,7 +782,13 @@ function treatXMLFile(xmlInput){
     //var xml = libxmljs.parseXmlString(body);
     var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
     treeStructure=recFunc(xml,[],[],[]);
-    //console.log(treeStructure);
+    for(idx in treeStructure){
+        //console.log("-----------treeStructure-----------")
+        //for (idx2 in treeStructure[idx])
+        //console.log(treeStructure[idx][idx2].RootName + " : " + treeStructure[idx][idx2].Text);
+        //console.log(treeStructure[idx][idx2].Path);
+    }
+
     //console.log("------------------------");
 
     var tables = combineBranch(treeStructure);
@@ -557,6 +796,7 @@ function treatXMLFile(xmlInput){
     //console.log("------------------------");
 
 
+    return tables;
     //console.log("tables");
     //console.log(tables);
 
@@ -1491,6 +1731,78 @@ function JSONtoConsoleCSVALL(inputCSV, title){
 function debugValue(){
 
 }
+
+
+function treeToCSV(inputCSV, title){
+
+    if(title!=undefined){
+        var res = "";
+        res+="";
+        for(idx in title){
+            res+=title[idx];
+            res+=",";
+        }
+        res+="\n";
+
+        return res;
+    }
+
+    var res = "";
+    res+="";
+    for(idx in inputCSV){
+        if(inputCSV[idx].output==true){
+            res+=inputCSV[idx].Text;
+            res+="\n";
+        }
+    }
+
+    return res;
+}
+
+function treeToHTML(inputCSV, title){
+
+    if(title!=undefined){
+        var res = "";
+        res+="<tr>";
+        for(idx in title){
+            if(title[idx].output==true) {
+                res += "<td>";
+                res += title[idx].RootName;
+                res += "</td>";
+            }
+        }
+        res+="</tr>";
+
+        return res;
+    }
+
+    var res = "";
+    res+="<tr>";
+    for(idx in inputCSV){
+        if(inputCSV[idx].output==true){
+            res+="<td>";
+            res+=inputCSV[idx].Text;
+            res+="</td>";
+        }
+
+        /*
+        if(title[idx].output==true){
+            res+="<td>";
+            if(inputCSV[idx]==undefined){
+                res+="wrong here";
+            }else{
+                res+=inputCSV[idx].val;
+            }
+
+            res+="</td>";
+        }
+
+        */
+    }
+    res+="</tr>";
+    return res;
+}
+
 function JSONtoHTML(inputCSV, title){
 
     if(inputCSV.length!=title.length){
@@ -2014,30 +2326,81 @@ function realfunction(response,request,postData) {
 
             var result = "";
             var resultArray = [] ;
+
+            /*
+             result+=func;
+             for (var i = 0 ; i<treatJS.length; i ++){
+             result+=("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
+             result+=("<div id=\"toc"+i+"\" hidden>");
+             result+=("<table style=\"width:100%\" border=1>");
+
+             var title = treatJS[i][0];
+             //console.log("^^^^^^^^final log^^^^^^^^");
+             //console.log(title);
+             //console.log("^^^^^^^^final log end^^^^");
+
+             //console.log("treatJS["+i+"] length is // row count"+treatJS[i].length);
+             var aCSV = "";
+             for (var j = 0; j < treatJS[i].length; j++){
+             //var htmlLine = JSONtoCSV(treatJS[i][j],title);
+             //var htmlLine = JSONtoConsoleCSV(treatJS[i][j],title);
+             var htmlLine = JSONtoHTML(treatJS[i][j],title);
+             result+=(htmlLine);
+             //console.log("treatJS["+i+"]["+j+"] length is //column count"+treatJS[i][j].length);
+             var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
+             //console.log(consoleLine);
+             aCSV+=consoleLine;
+             aCSV+='\n';
+             var consoleLineall = JSONtoConsoleCSVALL(treatJS[i][j],title);
+             //console.log(consoleLineall);
+             }
+             resultArray.push(aCSV);
+             //console.log("");
+             result+=("</table>");
+             result+=("</div>");
+             result+=("<br/>");
+             }
+             */
+
             result+=func;
-            for (var i = 0 ; i<treatJS.length; i ++){
+            for (var i = 0 ; i<treatXML.length; i ++){
                 result+=("<input type = 'button' onclick='showButton(\"toc"+i+"\")' value = data"+i+">");
                 result+=("<div id=\"toc"+i+"\" hidden>");
                 result+=("<table style=\"width:100%\" border=1>");
 
-                var title = treatJS[i][0];
+                var titles = treatXML[i]["title"];
+                var title = [];
+                for(idx in treatXML[i]["title"]){
+                    title.push(treatXML[i]["title"][idx].RootName);
+                }
+
+
                 //console.log("^^^^^^^^final log^^^^^^^^");
                 //console.log(title);
                 //console.log("^^^^^^^^final log end^^^^");
 
                 //console.log("treatJS["+i+"] length is // row count"+treatJS[i].length);
                 var aCSV = "";
-                for (var j = 0; j < treatJS[i].length; j++){
+                for (var j = 0; j < treatXML[i]["values"].length; j++){
                     //var htmlLine = JSONtoCSV(treatJS[i][j],title);
                     //var htmlLine = JSONtoConsoleCSV(treatJS[i][j],title);
-                    var htmlLine = JSONtoHTML(treatJS[i][j],title);
+                    //var htmlLine = JSONtoHTML(treatJS[i][j],title);
+                    if(j == 0){
+                        var htmlLine = treeToHTML(treatXML[i]["values"][j],treatXML[i]["title"]);
+                        result+=(htmlLine);
+                        aCSV+=htmlLine;
+                        aCSV+='\n';
+                        //console.log(result);
+                    }
+                    var htmlLine = treeToHTML(treatXML[i]["values"][j]);
                     result+=(htmlLine);
                     //console.log("treatJS["+i+"]["+j+"] length is //column count"+treatJS[i][j].length);
-                    var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
+                    //var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
                     //console.log(consoleLine);
-                    aCSV+=consoleLine;
+                    //aCSV+=consoleLine;
+                    aCSV+=htmlLine;
                     aCSV+='\n';
-                    var consoleLineall = JSONtoConsoleCSVALL(treatJS[i][j],title);
+                    //var consoleLineall = JSONtoConsoleCSVALL(treatJS[i][j],title);
                     //console.log(consoleLineall);
                 }
                 resultArray.push(aCSV);
