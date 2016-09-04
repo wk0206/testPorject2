@@ -259,17 +259,40 @@ function addAllColumnHeaders(myList, selector){
 }
 
 function checkIsLeaf(aTree){
-    var isLeaf = false;
-    if(typeof (aTree)=="string"){
 
+    //console.log("test tree↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
+    //console.log(typeof(aTree));
+    //console.log(aTree.parent());
+    //console.log(aTree.text());
+    //console.log(aTree.toString());
+    //console.log("test tree↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑");
+
+    var isLeaf = false;
+
+    if(typeof (aTree)=="string"){
+        console.log("input is a string");
     }else{
+
+        //if(aTree.name()=="text"){
+        //    return true;
+        //}
+
         if(aTree.child(0)!=null){
+            //console.log("aTree.child(0) is not null");
             if(aTree.child(0).toString().substring(0,1)!="<"){
                 isLeaf= true;
             }
         }
     }
 
+    if(aTree.child(0)!=null){
+        //console.log("aTree.child(0).name() is "+aTree.child(0).name());
+        if(aTree.child(0).name()=="text"){
+            isLeaf= true;
+        }
+    }
+
+    //console.log("test result " + isLeaf);
     return isLeaf;
 }
 
@@ -346,6 +369,7 @@ function addChild(aTree,res){
                 console.log("node with length "+ children.length);
             }
 */
+            console.log("res length is "+res.length);
             res.push(ele);
             return res;
         } else {
@@ -399,16 +423,11 @@ function addChild(aTree,res){
     return res;
 }
 
-function checkChild(aTree){
-    //var res = [0];
-
-    //return res;
-}
 
 //put in a tree.
 //give out an array.
-function recFunc(aTree, parentArr, result, child){
-console.log("--------------------------")
+function recFunc(aTree, parentArr, result, child ,checkedMark){
+    console.log("--------------------------")
     //parent
     var parent = [];
     parent=parentArr.slice(0);
@@ -416,13 +435,12 @@ console.log("--------------------------")
     //global result
     var res = result;
 
-    //go deep mark
-    var isLeaf = checkIsLeaf(aTree);
-    console.log("is a leaf? "+isLeaf);
-
-
     //xml
     var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
+
+    //go deep mark
+    var isLeaf = checkIsLeaf(xml);
+    console.log("is a leaf? "+isLeaf);
 
     //root
     var contactElement = xml.root();
@@ -443,7 +461,10 @@ console.log("--------------------------")
     ele["Text"] = contactElement.name();
     if(parentArr.length!=0){
 
-        console.log(parentArr[parentArr.length-1]["Path"]+contactElement.path());
+        //console.log(parentArr[parentArr.length-1]["Path"]+contactElement.path());
+        //console.log(parentArr);
+        //console.log(parentArr.length-1);
+        //console.log(parentArr[parentArr.length-1]);
         ele["Path"] = parentArr[parentArr.length-1]["Path"]+contactElement.path();
     }else{
         ele["Path"] = contactElement.path();
@@ -488,31 +509,48 @@ console.log("--------------------------")
 
     var children = contactElement.childNodes();
     var childrenB = [];
-    if(children==undefined || (children == "")){
-        console.log("ele[\"Children\"]==undefined");
-    }else{
-        console.log("how many children " +children.length);
+    var tempMark = false;
+    if(checkedMark == false){
+        if(children==undefined || (children == "")){
+            console.log("ele[\"Children\"]==undefined");
+        }else{
+            console.log("how many children " +children.length);
 
 
-        for(var i = 0; i < children.length; i ++){
-            //console.log("to string "+test[idx].toString());
-            var childrenA = addChild(children[i],[]);
-            //  childrenB = test-childrenA
+            for(var i = 0; i < children.length; i ++){
+                console.log("put child "+(i+1)+ " to addChild()");
+                var childrenA = addChild(children[i],[]);
+                //  childrenB = test-childrenA
 
-            if(childrenA.length == 0 ){
-                childrenB.push(children[i]);
-            }else{
-                console.log("some return from addChild()" +childrenA[0]["RootName"]);
+                if(childrenA.length == 0 ){
+                    childrenB.push(children[i]);
+                }else{
+                    console.log("some return from addChild()" +childrenA[0]["RootName"]);
+
+                    for(var j = 0; j < childrenA.length ; j ++){
+                        //console.log(childrenA[j]);
+                        parent.push(childrenA[j]);
+                    }
+
+                }
+                //var childEles = addChild(test[idx],[]);
             }
-            //var childEles = addChild(test[idx],[]);
+
+            if(childrenB.length == 0 & children.length > 1){
+                var parentLength = parent.length;
+                parent=parent.slice(0,parentLength-children.length);
+                childrenB = children;
+                tempMark = true;
+            }
+
+            //console.log("how many children children has :"+ children.length);
+            //console.log("how many children childrenB has :"+ childrenB.length);
         }
-
-        if(childrenB.length >0){
-
-        }
-
-
+    }else{
+        childrenB = children;
     }
+
+    /*
 
 
     if(ele["Children"]!=undefined){
@@ -541,12 +579,12 @@ console.log("--------------------------")
         }
     }
 
-
+*/
 
 
     // number of child
-    var children = xml.root().childNodes();
-    var childrenNumber = children.length;
+    //var children = xml.root().childNodes();
+    //var childrenNumber = children.length;
 
     var endRowMark = false;
 
@@ -554,8 +592,21 @@ console.log("--------------------------")
     if(isLeaf==false){
 
         for(var i = childrenB.length-1 ; i>-1 ; i--){
+            //console.log("childrenB.length is " + childrenB.length)
+            //console.log("checkedMark is " +checkedMark)
+            if(checkedMark==true){
+                console.log("path 1 ");
+                recFunc(childrenB[i],parent,res,child, checkedMark);
+            }else if(tempMark==true){
+                console.log("path 2 ");
+                //console.log("tempMark is " +tempMark)
+                recFunc(childrenB[i],parent,res,child, tempMark);
+                //console.log("return from path 2")
+            }else {
+                console.log("path 3 ");
+                recFunc(childrenB[i],parent,res,child,tempMark);
+            }
 
-            recFunc(childrenB[i],parent,res,child);
 
             if(i==0){
                 //last element
@@ -633,7 +684,7 @@ console.log("--------------------------")
     //console.log(isLeaf);
     //if find an leaf , return this root- node -leaf back
     if(isLeaf==true || endRowMark == true){
-        //console.log("parent after " + parent);
+        //console.log("recfun return ");
         return res;
     }
 }
@@ -699,6 +750,9 @@ function combineBranch(treeStructure){
         //console.log("treeStructure[i][0].RootName = "+treeStructure[i][0].RootName);
 
         var aData = treeStructure[i];
+
+        var firstEle;
+
         if(i==treeStructure.length-1){
 
             if(treeStructure[i-1][0].RootName=="isLeaf" && treeStructure[i][0].RootName=="isLeaf"){
@@ -710,6 +764,7 @@ function combineBranch(treeStructure){
         }else{
             if(treeStructure[i][0].RootName=="isNode" && treeStructure[i+1][0].RootName=="isLeaf"){
                 sameMark = true;
+                firstEle = treeStructure[i][aData.length-1];
             }
             //console.log("first  condition " + sameMark );
             if(treeStructure[i][0].RootName=="isLeaf" && treeStructure[i+1][0].RootName=="isNode"){
@@ -720,13 +775,30 @@ function combineBranch(treeStructure){
 
         //console.log("sameMark" + sameMark);
 
+        var differentMark = false;
         if( sameMark == true){
+            var pathLength = treeStructure[i-1].length;
+            //console.log("treeStructure[i-1][pathLength-1].RootName"+treeStructure[i-1][pathLength-1].RootName);
+            //console.log("treeStructure[i][pathLength-1].RootName"+treeStructure[i][pathLength-1].RootName);
+
+            //console.log("treeStructure[i-1].length "+treeStructure[i-1].length);
+            //console.log("treeStructure[i  ].length"+treeStructure[1].length);
+
+            var current = treeStructure[i][aData.length-1];
+
+            if(current.RootName != firstEle.RootName){
+                differentMark=true;
+
+            }
             temp.push(treeStructure[i][aData.length-1]);
             continue;
         }
 
         var tempData = aData.slice(0,aData.length-1);
 
+        if(differentMark==false){
+            temp.length=0;
+        }
         if(sameMark == false && temp.length >0){
             temp.push(treeStructure[i][aData.length-1]);
 
@@ -781,21 +853,26 @@ function treatXMLFile(xmlInput){
     //console.log(result);
     //var xml = libxmljs.parseXmlString(body);
     var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
-    treeStructure=recFunc(xml,[],[],[]);
+    treeStructure=recFunc(xml,[],[],[],false);
     for(idx in treeStructure){
-        //console.log("-----------treeStructure-----------")
-        //for (idx2 in treeStructure[idx])
-        //console.log(treeStructure[idx][idx2].RootName + " : " + treeStructure[idx][idx2].Text);
-        //console.log(treeStructure[idx][idx2].Path);
+        console.log("-----------treeStructure-----------")
+        var count = 0;
+        for (idx2 in treeStructure[idx]){
+            //console.log("node "+count);
+            //count++;
+
+            //console.log(treeStructure[idx][idx2].RootName + " : " + treeStructure[idx][idx2].Text);
+            //console.log(treeStructure[idx][idx2].Path);
+        }
     }
 
     //console.log("------------------------");
 
     var tables = combineBranch(treeStructure);
 
-    //console.log("------------------------");
+    console.log(tables);
 
-
+    //var tables = [];
     return tables;
     //console.log("tables");
     //console.log(tables);
@@ -1739,7 +1816,7 @@ function treeToCSV(inputCSV, title){
         var res = "";
         res+="";
         for(idx in title){
-            res+=title[idx];
+            res+=title[idx].RootName;
             res+=",";
         }
         res+="\n";
@@ -1751,8 +1828,9 @@ function treeToCSV(inputCSV, title){
     res+="";
     for(idx in inputCSV){
         if(inputCSV[idx].output==true){
+
             res+=inputCSV[idx].Text;
-            res+="\n";
+            res+=",";
         }
     }
 
@@ -2326,6 +2404,7 @@ function realfunction(response,request,postData) {
 
             var result = "";
             var resultArray = [] ;
+            var resultArrayToSingleCSV=""
 
             /*
              result+=func;
@@ -2388,22 +2467,25 @@ function realfunction(response,request,postData) {
                     if(j == 0){
                         var htmlLine = treeToHTML(treatXML[i]["values"][j],treatXML[i]["title"]);
                         result+=(htmlLine);
-                        aCSV+=htmlLine;
+                        aCSV+=treeToCSV(treatXML[i]["values"][j],treatXML[i]["title"]);;
                         aCSV+='\n';
                         //console.log(result);
                     }
                     var htmlLine = treeToHTML(treatXML[i]["values"][j]);
+                    var csvLine = treeToCSV(treatXML[i]["values"][j]);
+                    console.log(csvLine);
                     result+=(htmlLine);
                     //console.log("treatJS["+i+"]["+j+"] length is //column count"+treatJS[i][j].length);
                     //var consoleLine = JSONtoConsoleCSV(treatJS[i][j],title);
                     //console.log(consoleLine);
                     //aCSV+=consoleLine;
-                    aCSV+=htmlLine;
+                    aCSV+=csvLine;
                     aCSV+='\n';
                     //var consoleLineall = JSONtoConsoleCSVALL(treatJS[i][j],title);
                     //console.log(consoleLineall);
                 }
                 resultArray.push(aCSV);
+                resultArrayToSingleCSV +=aCSV;
                 //console.log("");
                 result+=("</table>");
                 result+=("</div>");
@@ -2430,6 +2512,8 @@ function realfunction(response,request,postData) {
 
             });
 
+
+
             for (var i = 0; i < resultArray.length; i ++){
                 //console.log("temp "+ resultArray.length)
                 var fs = require('fs');
@@ -2442,6 +2526,17 @@ function realfunction(response,request,postData) {
                     //console.log(date.toISOString()+": The file "+i+" was saved!");
                 });
             }
+
+            var fs = require('fs');
+            fs.writeFile(directory+"/result"+".csv", resultArrayToSingleCSV, function(err) {
+                ///console.log("in sync");
+                if(err) {
+                    return console.log(err);
+                }
+                var date = new Date();
+                //console.log(date.toISOString()+": The file "+i+" was saved!");
+            });
+
             //console.log("result log");
             //console.log(result);
             //console.log("result log");
