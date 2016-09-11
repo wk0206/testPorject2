@@ -438,7 +438,7 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
     //xml
     var xml = libxmljs.parseXmlString(aTree,{ noblanks: true });
 
-    //go deep mark
+    //go deep mark, if not a leaf, go deep
     var isLeaf = checkIsLeaf(xml);
     console.log("is a leaf? "+isLeaf);
 
@@ -459,6 +459,7 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
     ele["RootName"] = rootName;
     ele["Attribute"] = contactElement.attrs();
     ele["Text"] = contactElement.name();
+    //path = parent path + path
     if(parentArr.length!=0){
 
         //console.log(parentArr[parentArr.length-1]["Path"]+contactElement.path());
@@ -478,12 +479,12 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
     ele["output"] = false;
 
 
-    //add this name to parent(include itself)
-
+    //add this node to parent(include itself)
     parent.push(ele);
 
 
     //console.log(ele["Attribute"].length);
+    //isolate the attribute, make them as a node
     if(ele["Attribute"].length>0){
         //console.log("not empty");
         var attrList = ele["Attribute"];
@@ -507,6 +508,10 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
         }
     }
 
+    //this part is to handle every children of input,
+    //check if they should be isolate and put into a node
+    //and mark the ones already checked not to be check again
+    //ignore the ones with an already check mark
     var children = contactElement.childNodes();
     var childrenB = [];
     var tempMark = false;
@@ -522,11 +527,15 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
                 var childrenA = addChild(children[i],[]);
                 //  childrenB = test-childrenA
 
+
+                //if addChild return something ,that means this branch is a dead end
+                //add this node to parent as a description.
                 if(childrenA.length == 0 ){
                     childrenB.push(children[i]);
                 }else{
                     console.log("some return from addChild()" +childrenA[0]["RootName"]);
 
+                    //if this node has some attribute, will also return
                     for(var j = 0; j < childrenA.length ; j ++){
                         //console.log(childrenA[j]);
                         parent.push(childrenA[j]);
@@ -536,9 +545,12 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
                 //var childEles = addChild(test[idx],[]);
             }
 
+            //this block has same structure, they are all data,
             if(childrenB.length == 0 & children.length > 1){
                 var parentLength = parent.length;
+                //remove all the child from parent
                 parent=parent.slice(0,parentLength-children.length);
+                //set childrenB to all the children
                 childrenB = children;
                 tempMark = true;
             }
@@ -586,9 +598,13 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
     //var children = xml.root().childNodes();
     //var childrenNumber = children.length;
 
+
+    //if the data has similar structure and need to make then in one row
     var endRowMark = false;
 
-    //each child call recFunc again
+    //each child(childrenB) call recFunc again
+    //I forgot how this part works now
+    //add comment later
     if(isLeaf==false){
 
         for(var i = childrenB.length-1 ; i>-1 ; i--){
@@ -603,6 +619,7 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
                 recFunc(childrenB[i],parent,res,child, tempMark);
                 //console.log("return from path 2")
             }else {
+                //this should be the most common choice
                 console.log("path 3 ");
                 recFunc(childrenB[i],parent,res,child,tempMark);
             }
@@ -617,6 +634,10 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
 
         //parent.unshift("isNode");
 
+        //this tempNode , tell the row is a node
+        //node row should be in the final result
+        //node row should not be output
+        //exist only for assemble others
         var tempNode = {}
         tempNode["Tree"] = "";
         tempNode["Root"] = "";
@@ -649,6 +670,10 @@ function recFunc(aTree, parentArr, result, child ,checkedMark){
 
         //parent.unshift("isLeaf");
 
+        //this tempNode tells the row is a leaf row
+        //leaf row must be in both final result and output
+        //leaf row is the element for next step to combine
+        //leaf row will be combined if every RootName is same
         var tempNode = {}
         tempNode["Tree"] = "";
         tempNode["Root"] = "";
@@ -855,7 +880,7 @@ function treatXMLFile(xmlInput){
     var xml = libxmljs.parseXmlString(xmlInput,{ noblanks: true });
     treeStructure=recFunc(xml,[],[],[],false);
     for(idx in treeStructure){
-        console.log("-----------treeStructure-----------")
+        //console.log("-----------treeStructure-----------")
         var count = 0;
         for (idx2 in treeStructure[idx]){
             //console.log("node "+count);
